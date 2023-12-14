@@ -12,8 +12,14 @@ import fs from "fs";
 import FastRefreshPlugin from "@pmmmwh/react-refresh-webpack-plugin";
 
 export default function addPlugins(config: Config, opts: ApplyOpts) {
-  const { isEnvProduction, env, isEnvDevelopment, paths, fastRefresh, publicPath } =
-    opts;
+  const {
+    isEnvProduction,
+    env,
+    isEnvDevelopment,
+    paths,
+    fastRefresh,
+    publicPath,
+  } = opts;
   config
     .plugin("ModuleNotFoundPlugin")
     .use(ModuleNotFoundPlugin, [paths.appRoot]);
@@ -69,17 +75,21 @@ export default function addPlugins(config: Config, opts: ApplyOpts) {
   }
   config.plugin("progress-bar-webpack-plugin").use(ProgressBarPlugin);
 
-  config.plugin("CopyPlugin").use(CopyPlugin, [
-    {
-      patterns: [
-        fs.existsSync(paths.appPublic) &&
-          fs.readdirSync(paths.appPublic).length && {
-            from: paths.appPublic,
-            info: { minimized: true },
-          },
-      ],
-    },
-  ] as any);
+  const copyPatterns = [
+    fs.existsSync(paths.appPublic) &&
+      fs.readdirSync(paths.appPublic).length && {
+        from: paths.appPublic,
+        info: { minimized: true },
+      },
+  ].filter(Boolean);
+  if (copyPatterns.length) {
+    config.plugin("CopyPlugin").use(CopyPlugin, [
+      {
+        patterns: copyPatterns,
+      },
+    ] as any);
+  }
+  
   if (fastRefresh) {
     config
       .plugin("fastRefresh")

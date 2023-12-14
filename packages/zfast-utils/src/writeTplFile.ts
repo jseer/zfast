@@ -10,6 +10,7 @@ export interface WriteFileOptions {
   tpl?: string;
   tplPath?: string;
   context?: object;
+  transform?: (content: string) => Promise<string>;
 }
 const debug = createDebugger("utils:writeTplFile");
 async function write(outputPath: string, content: string) {
@@ -18,7 +19,7 @@ async function write(outputPath: string, content: string) {
   await fs.writeFile(outputPath, content, "utf-8");
 }
 export default async function writeTplFile(options: WriteFileOptions) {
-  let { outputPath, content, tpl, tplPath, context } = options;
+  let { outputPath, content, tpl, tplPath, context, transform } = options;
   debug("outputPath:%s tplPath:%s", outputPath, tplPath);
   const savePath = path.isAbsolute(outputPath)
     ? outputPath
@@ -32,6 +33,9 @@ export default async function writeTplFile(options: WriteFileOptions) {
     tpl = tplPath ? await fs.readFile(tplPath, "utf-8") : tpl;
     assert(tpl, `tpl or .tplPath must be supplied.`);
     content = Mustache.render(tpl, context);
+  }
+  if (transform) {
+    content = await transform(content);
   }
   if (!fs.existsSync(savePath)) {
     await write(savePath, content);

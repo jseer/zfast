@@ -1,12 +1,19 @@
+import fs from "fs";
 import { App as AppCore, AppOpts as AppCoreOpts } from "@zfast/core";
 import path from "path";
+import { normalizePath, writeTplFile, babelTsToJs } from "@zfast/utils";
+import convertFileToRoutes from "./routes/convertFileToRoutes";
 
-interface AppOpts extends AppCoreOpts {}
+interface AppOpts extends Omit<AppCoreOpts, "name"> {}
+type AppPaths = AppCore["paths"] & { appPages: string };
 
 class App extends AppCore {
   hasJsxRuntime: boolean;
   constructor(props: AppOpts) {
-    super(props);
+    super({
+      ...props,
+      name: "zfast",
+    });
     this.hasJsxRuntime = (() => {
       if (process.env.DISABLE_NEW_JSX_TRANSFORM === "true") {
         return false;
@@ -22,8 +29,117 @@ class App extends AppCore {
 
   getEntry() {
     return {
-      main: path.join(this.cwd, "src/index"),
+      main: this.paths.appEntry,
     };
+  }
+
+  getPaths(root: string) {
+    const paths = super.getPaths(root);
+    return {
+      ...paths,
+      appPages: path.resolve(paths.appSrc, "pages"),
+      appEntry: path.resolve(paths.appTemp, "zfast"),
+    };
+  }
+
+  async init() {
+    await super.init();
+    await this.writeTmpFiles();
+  }
+
+  getTmpOutputPath(p: string, x: string = "") {
+    const useTypeScript = fs.existsSync(this.paths.appTsConfig);
+    return path.join(
+      this.paths.appTemp,
+      `${p}${useTypeScript ? ".ts" : ".js"}${x}`
+    );
+  }
+  getTplInputPath(p: string) {
+    return path.resolve(__dirname, "tpl", p);
+  }
+
+  async getFileRoutes() {
+    const pagesPath = (this.paths as AppPaths).appPages;
+    const fileRoutes = this.config.routes
+      ? this.config.routes
+      : (
+          await convertFileToRoutes({
+            baseDir: pagesPath,
+            allowEmptyRoutes: false,
+          })
+        ).routes;
+    const routeComponents: string[] = ["{"];
+    function visitFileRoutes(fileRoutes: any[]) {
+      fileRoutes.forEach((fileRoute: any) => {
+        const p =
+          path.isAbsolute(fileRoute.file) || fileRoute.file.startsWith("@/")
+            ? fileRoute.file
+            : path.join(pagesPath, fileRoute.file);
+        if (fileRoute.isDir) {
+          delete fileRoute.isDir;
+        } else {
+          routeComponents.push(
+            `'${fileRoute.id}': React.lazy(() => import('${normalizePath(
+              p
+            )}')),`
+          );
+        }
+        delete fileRoute.file;
+        if (fileRoute.children) {
+          visitFileRoutes(fileRoute.children);
+        }
+      });
+    }
+    visitFileRoutes(fileRoutes);
+    routeComponents.push("}");
+    return {
+      routeComponents: routeComponents.join("\n"),
+      routes: JSON.stringify(fileRoutes),
+    };
+  }
+
+  async transformContent(content: string) {
+    const useTypeScript = fs.existsSync(this.paths.appTsConfig);
+    return useTypeScript
+      ? content
+      : ((await babelTsToJs(content))?.code as string);
+  }
+
+  async writeTmpFiles() {
+    await Promise.all([
+      writeTplFile({
+        outputPath: this.getTmpOutputPath("core/history"),
+        tplPath: this.getTplInputPath("history.tpl"),
+        transform: this.transformContent.bind(this),
+      }),
+      writeTplFile({
+        outputPath: this.getTmpOutputPath("core/exports"),
+        tplPath: this.getTplInputPath("exports.tpl"),
+        transform: this.transformContent.bind(this),
+      }),
+      writeTplFile({
+        outputPath: this.getTmpOutputPath("zfast"),
+        tplPath: this.getTplInputPath("zfast.tpl"),
+        transform: this.transformContent.bind(this),
+        context: {
+          renderPath: path.join(path.dirname(__filename), "render"),
+          basename: this.config.basename || "/",
+          historyType: this.config.history?.type || "browser",
+        },
+      }),
+      (async () => {
+        const { routeComponents, routes } = await this.getFileRoutes();
+        await writeTplFile({
+          outputPath: this.getTmpOutputPath("core/routes"),
+          tplPath: this.getTplInputPath("routes.tpl"),
+          transform: this.transformContent.bind(this),
+          context: {
+            routeComponents,
+            routes,
+          },
+        });
+      })(),
+    ]);
   }
 }
 

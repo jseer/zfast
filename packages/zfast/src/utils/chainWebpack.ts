@@ -10,7 +10,7 @@ const chainWebpack: BaseOpts["chainWebpack"] = (config, { env }) => {
       {},
       {
         inject: true,
-        template: path.resolve(__dirname, "../../tpl/index.html"),
+        template: path.resolve(__dirname, "../tpl/index.html"),
       },
       isEnvProduction
         ? {

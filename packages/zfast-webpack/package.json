@@ -1,9 +1,10 @@
 {
   "name": "@zfast/webpack",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "scripts": {
-    "build": "pnpm tsc"
+    "dev": "father dev",
+    "build": "father build"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -49,13 +50,6 @@
     "webpack-chain": "^6.5.1",
     "webpack-dev-server": "^4.15.1",
     "webpack-manifest-plugin": "^5.0.0"
-  },
-  "devDependencies": {
-    "@types/case-sensitive-paths-webpack-plugin": "^2.1.9",
-    "@types/fs-extra": "^11.0.4",
-    "@types/progress-bar-webpack-plugin": "^2.1.5",
-    "@types/react-dev-utils": "^9.0.15",
-    "@types/webpack-bundle-analyzer": "^4.6.3"
   },
   "optionalDependencies": {
     "@zfast/core": "workspace:^"

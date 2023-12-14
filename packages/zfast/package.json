@@ -1,33 +1,35 @@
 {
   "name": "zfast",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "bin": {
     "zfast": "./bin/zfast.js"
   },
   "scripts": {
-    "build": "pnpm tsc"
+    "dev": "father dev",
+    "build": "father build"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "tpl"
+    "dist"
   ],
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/react-dev-utils": "^9.0.15",
-    "@zfast/core": "workspace:^",
+    "@remix-run/router": "^1.13.1",
+    "@zfast/utils": "workspace:^",
     "@zfast/webpack": "workspace:^",
     "fs-extra": "^11.2.0",
     "html-webpack-plugin": "^5.5.3",
-    "react": "^18.2.0",
     "react-dev-utils": "^12.0.1",
-    "react-dom": "^18.2.0"
+    "react-router-dom": "^6.20.1",
+    "commander": "^11.1.0",
+    "@zfast/core": "workspace:^"
   },
-  "devDependencies": {
-    "@types/fs-extra": "^11.0.4"
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }

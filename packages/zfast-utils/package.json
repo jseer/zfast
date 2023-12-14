@@ -1,9 +1,10 @@
 {
   "name": "@zfast/utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "scripts": {
-    "build": "pnpm tsc"
+    "dev": "father dev",
+    "build": "father build"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,6 +18,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@babel/core": "^7.23.5",
+    "@babel/plugin-transform-typescript": "^7.23.6",
     "debug": "^4.3.4",
     "dotenv": "^16.3.1",
     "dotenv-expand": "^10.0.0",
@@ -24,10 +27,5 @@
     "fs-extra": "^11.2.0",
     "mustache": "^4.2.0",
     "picocolors": "^1.0.0"
-  },
-  "devDependencies": {
-    "@types/debug": "^4.1.12",
-    "@types/fs-extra": "^11.0.4",
-    "@types/mustache": "^4.2.5"
   }
 }

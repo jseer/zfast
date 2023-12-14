@@ -20,22 +20,24 @@ export default async function (opts: DevOpts) {
     env: "development",
     command: "dev",
   });
+  await app.init();
+  const { logger, config, paths } = app;
   const { devServer, urls } = await dev({
     cwd: app.cwd,
     hasJsxRuntime: app.hasJsxRuntime,
     entry: app.getEntry(),
-    paths: app.paths,
+    paths,
     pkg: app.pkg,
     chainWebpack,
     logger: app.logger,
-    publicPath: app.userConfig.publicPath,
-    fastRefresh: app.userConfig.fastRefresh,
+    publicPath: config.publicPath,
+    fastRefresh: config.fastRefresh,
   });
   devServer.startCallback(() => {
     if (isInteractive) {
       clearConsole();
     }
-    app.logger.colors.cyan("Starting the development server...\n");
+    logger.colors.cyan("Starting the development server...\n");
     openBrowser(urls.localUrlForBrowser);
   });
   ["SIGINT", "SIGTERM"].forEach(function (sig) {

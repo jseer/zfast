@@ -24,8 +24,9 @@ export default async function (opts: BuildOpts) {
     env: "production",
     command: "build",
   });
+  await app.init();
 
-  const { paths, userConfig } = app;
+  const { paths, config, logger } = app;
   try {
     await fs.remove(paths.appBuild);
     const { stats, previousFileSizes, warnings } = await build({
@@ -35,18 +36,18 @@ export default async function (opts: BuildOpts) {
       paths: app.paths,
       pkg: app.pkg,
       chainWebpack,
-      logger: app.logger,
-      publicPath: userConfig.publicPath,
-      watch: userConfig.watch,
+      logger,
+      publicPath: config.publicPath,
+      watch: config.watch,
     });
     if (warnings.length) {
-      app.logger.warn("Compiled with warnings.\n");
+      logger.warn("Compiled with warnings.\n");
       console.log(warnings.join("\n\n"));
     } else {
-      app.logger.success("Compiled successfully.\n");
+      logger.success("Compiled successfully.\n");
     }
 
-    app.logger.info("File sizes after gzip:\n");
+    logger.info("File sizes after gzip:\n");
     printFileSizesAfterBuild(
       // @ts-ignore
       stats,
@@ -59,12 +60,12 @@ export default async function (opts: BuildOpts) {
   } catch (err: any) {
     const tscCompileOnError = process.env.TSC_COMPILE_ON_ERROR === "true";
     if (tscCompileOnError) {
-      app.logger.warn(
+      logger.warn(
         "Compiled with the following type errors (you may want to check these before deploying your app):\n"
       );
       printBuildError(err);
     } else {
-      app.logger.error("Failed to compile.\n");
+      logger.error("Failed to compile.\n");
       printBuildError(err);
       process.exit(1);
     }
