@@ -6,3 +6,4 @@ export { default as createDebugger } from "./createDebugger";
 export { default as normalizePath } from "./normalizePath";
 export { default as writeTplFile } from "./writeTplFile";
 export { default as babelTsToJs } from "./babelTsToJs";
+export { resolveAsync } from "./resolve";

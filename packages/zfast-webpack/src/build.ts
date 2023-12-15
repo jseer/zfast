@@ -18,17 +18,17 @@ export async function build(opts: BuildOpts): Promise<{
   config: webpack.Configuration;
   closeWatching?: webpack.Watching["close"];
 }> {
-  const { paths, logger, publicPath: userPublicPath, pkg } = opts;
+  const { paths, logger, publicPath: userPublicPath, pkg, hooks } = opts;
   const config = await getConfig({
     cwd: opts.cwd,
     env: Env.production,
-    chainWebpack: opts.chainWebpack,
     entry: opts.entry,
     paths,
     hasJsxRuntime: opts.hasJsxRuntime,
     pkg,
     logger,
     publicPath: getPublicPath(Env.production, pkg.homepage, userPublicPath),
+    hooks,
   });
   const previousFileSizes = await measureFileSizesBeforeBuild(paths.appBuild);
   logger.info("Creating an optimized production build...");

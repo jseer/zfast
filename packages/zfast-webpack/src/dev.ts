@@ -28,7 +28,7 @@ export async function dev(opts: DevOpts): Promise<{
     debug("port is null");
     return Promise.reject("cancel to found port");
   }
-  const { paths, logger, publicPath: userPublicPath, pkg, fastRefresh } = opts;
+  const { paths, logger, publicPath: userPublicPath, pkg, fastRefresh, hooks } = opts;
   const publicPath = getPublicPath(
     Env.production,
     pkg.homepage,
@@ -42,7 +42,7 @@ export async function dev(opts: DevOpts): Promise<{
   const config = await getConfig({
     cwd: opts.cwd,
     env: Env.development,
-    chainWebpack: opts.chainWebpack,
+    hooks,
     entry: opts.entry,
     paths,
     hasJsxRuntime: opts.hasJsxRuntime,

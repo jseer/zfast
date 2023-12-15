@@ -10,7 +10,7 @@ import {
 import FileSizeReporter from "react-dev-utils/FileSizeReporter";
 import printBuildError from "react-dev-utils/printBuildError";
 import { BaseOpts } from "./types";
-import chainWebpack from "./utils/chainWebpack";
+import chainWebpack from "./hooks/chainWebpack";
 
 const printFileSizesAfterBuild = FileSizeReporter.printFileSizesAfterBuild;
 
@@ -23,10 +23,11 @@ export default async function (opts: BuildOpts) {
     configFile: opts.configFile,
     env: "production",
     command: "build",
+    plugins: [chainWebpack],
   });
   await app.init();
 
-  const { paths, config, logger } = app;
+  const { paths, config, logger, hooks } = app;
   try {
     await fs.remove(paths.appBuild);
     const { stats, previousFileSizes, warnings } = await build({
@@ -35,10 +36,12 @@ export default async function (opts: BuildOpts) {
       entry: app.getEntry(),
       paths: app.paths,
       pkg: app.pkg,
-      chainWebpack,
       logger,
       publicPath: config.publicPath,
       watch: config.watch,
+      hooks: {
+        chainWebpack: hooks.chainWebpack,
+      },
     });
     if (warnings.length) {
       logger.warn("Compiled with warnings.\n");

@@ -1,15 +1,27 @@
 import fs from "fs";
-import { App as AppCore, AppOpts as AppCoreOpts } from "@zfast/core";
+import {
+  App as AppCore,
+  AppOpts as AppCoreOpts,
+  IPaths,
+  IHooks,
+} from "@zfast/core";
 import path from "path";
 import { normalizePath, writeTplFile, babelTsToJs } from "@zfast/utils";
 import convertFileToRoutes from "./routes/convertFileToRoutes";
-
-interface AppOpts extends Omit<AppCoreOpts, "name"> {}
-type AppPaths = AppCore["paths"] & { appPages: string };
+import { AsyncSeriesHook } from "tapable";
+import defaultConfig from "./utils/defaultConfig";
+import type Config from "webpack-chain";
+import { Env as WebpackEnv, webpack } from "@zfast/webpack";
 
 class App extends AppCore {
   hasJsxRuntime: boolean;
-  constructor(props: AppOpts) {
+  paths!: IPaths & { appPages: string };
+  hooks!: IHooks & {
+    chainWebpack: AsyncSeriesHook<
+      [Config, { env: WebpackEnv; webpack: typeof webpack }]
+    >;
+  };
+  constructor(props: Omit<AppCoreOpts, "name">) {
     super({
       ...props,
       name: "zfast",
@@ -25,6 +37,11 @@ class App extends AppCore {
         return false;
       }
     })();
+    this.defaultConfig = defaultConfig;
+    this.hooks = {
+      ...this.hooks,
+      chainWebpack: new AsyncSeriesHook(["memo", "opts"]),
+    };
   }
 
   getEntry() {
@@ -59,7 +76,7 @@ class App extends AppCore {
   }
 
   async getFileRoutes() {
-    const pagesPath = (this.paths as AppPaths).appPages;
+    const pagesPath = this.paths.appPages;
     const fileRoutes = this.config.routes
       ? this.config.routes
       : (

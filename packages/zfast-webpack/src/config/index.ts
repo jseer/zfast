@@ -17,8 +17,8 @@ export interface ApplyOpts {
   paths: ConfigOpts["paths"];
   hasJsxRuntime: ConfigOpts["hasJsxRuntime"];
   cwd: ConfigOpts["cwd"];
-  publicPath: ConfigOpts["publicPath"]
-  fastRefresh: ConfigOpts["fastRefresh"]
+  publicPath: ConfigOpts["publicPath"];
+  fastRefresh: ConfigOpts["fastRefresh"];
 }
 
 const createEnvironmentHash = (env: Record<string, string>) => {
@@ -28,7 +28,7 @@ const createEnvironmentHash = (env: Record<string, string>) => {
 };
 
 export async function getConfig(opts: ConfigOpts) {
-  const paths = opts.paths;
+  const { paths, hooks } = opts;
   const config = new Config();
   const isEnvDevelopment = opts.env === Env.development;
   const isEnvProduction = opts.env === Env.production;
@@ -144,12 +144,13 @@ export async function getConfig(opts: ConfigOpts) {
 
   addPlugins(config, applyOpts);
 
-  if (opts.chainWebpack) {
-    await opts.chainWebpack(config, {
+  if (hooks?.chainWebpack) {
+    await hooks.chainWebpack.promise(config, {
       env: opts.env,
       webpack,
     });
   }
+
   const webpackConfig = config.toConfig();
   // fs.writeFileSync(path.resolve(opts.cwd, '.webpack-config.json'), JSON.stringify(webpackConfig, null, 4))
   return webpackConfig;

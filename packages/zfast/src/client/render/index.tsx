@@ -1,6 +1,6 @@
 import React, { useMemo, Suspense } from "react";
 import ReactDOM from "react-dom/client";
-import Router from "../routes/router";
+import Router from "../../routes/router";
 import { RouteObject, useRoutes } from "react-router-dom";
 
 function render(opts: any) {

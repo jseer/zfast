@@ -1,6 +1,9 @@
 import { loadConfigFromFile, loadEnv, createLogger } from "@zfast/utils";
 import fs from "fs";
 import path from "path";
+import { AsyncSeriesWaterfallHook, Hook } from "tapable";
+import { Plugin, normalizePlugin, IPlugin } from "./plugin";
+import { merge } from "lodash";
 
 export interface AppOpts {
   name: string;
@@ -9,6 +12,29 @@ export interface AppOpts {
   command: string;
   defaultConfigFiles?: string[];
   configFile?: string;
+  plugins?: IPlugin<any>[];
+}
+
+export interface IPaths {
+  dotenv: string;
+  appRoot: string;
+  appBuild: string;
+  appEntry: string;
+  appPackageJson: string;
+  yarnLockFile: string;
+  appSrc: string;
+  appTsConfig: string;
+  appJsConfig: string;
+  appNodeModules: string;
+  appTsBuildInfoFile: string;
+  appPublic: string;
+  appTemp: string;
+  [key: string]: string;
+}
+export interface IHooks {
+  config: AsyncSeriesWaterfallHook<Record<string, any>>;
+  paths: AsyncSeriesWaterfallHook<IPaths>;
+  [key: string]: Hook<any, any, any>;
 }
 
 export class App {
@@ -16,27 +42,32 @@ export class App {
   cwd: string;
   env: string;
   opts: AppOpts;
-  userConfig: Record<string, any> = {};
+  userConfig: Record<string, any>;
+  defaultConfig: Record<string, any> = {};
   config: Record<string, any> = {};
-  paths: ReturnType<typeof this.getPaths>;
-  pkg: Record<string, any> = {};
+  paths: IPaths;
+  pkg: Record<string, any>;
   logger: ReturnType<typeof createLogger>;
+  hooks: IHooks;
   constructor(opts: AppOpts) {
     this.name = opts.name;
     this.cwd = opts.cwd;
     this.env = opts.env;
     process.env.NODE_ENV = this.env;
     this.opts = opts;
-    this.logger = createLogger({ tag: this.opts.command });
     loadEnv({
       envFile: ".env",
       env: this.env,
       suffix: ["local"],
     });
     this.paths = this.getPaths(fs.realpathSync(this.cwd));
+    this.logger = createLogger({ tag: this.opts.command });
     this.pkg = require(this.paths.appPackageJson);
     this.userConfig = this.getUserConfig();
-    this.config = this.getConfig();
+    this.hooks = {
+      config: new AsyncSeriesWaterfallHook(["config"]),
+      paths: new AsyncSeriesWaterfallHook(["paths"]),
+    };
   }
 
   getUserConfig() {
@@ -48,13 +79,14 @@ export class App {
       }) || {}
     );
   }
-  
+
   getConfig() {
     return this.userConfig;
   }
 
   getPaths(root: string) {
-    const resolveApp = (relativePath: string) => path.resolve(root, relativePath);
+    const resolveApp = (relativePath: string) =>
+      path.resolve(root, relativePath);
     return {
       dotenv: resolveApp(".env"),
       appRoot: resolveApp("."),
@@ -66,7 +98,9 @@ export class App {
       appTsConfig: resolveApp("tsconfig.json"),
       appJsConfig: resolveApp("jsconfig.json"),
       appNodeModules: resolveApp("node_modules"),
-      appTsBuildInfoFile: resolveApp("node_modules/.cache/tsconfig.tsbuildinfo"),
+      appTsBuildInfoFile: resolveApp(
+        "node_modules/.cache/tsconfig.tsbuildinfo"
+      ),
       appPublic: resolveApp("public"),
       appTemp: resolveApp(`src/.${this.name}`),
     };
@@ -76,8 +110,28 @@ export class App {
     if (fs.existsSync(this.paths.appTemp)) {
       fs.rmSync(this.paths.appTemp, { force: true, recursive: true });
     }
-    await this.initPlugins();
+    const plugins = this.opts.plugins || [];
+    await this.initPlugins(plugins);
+    if (this.config.hooks) {
+      await this.config.hooks(this.hooks);
+    }
+    this.paths = await this.hooks.paths.promise(this.paths);
+    this.config = merge(
+      {},
+      this.defaultConfig,
+      await this.hooks.config.promise(this.userConfig)
+    );
   }
 
-  async initPlugins() {}
+  async initPlugins(plugins: IPlugin<any>[]) {
+    let i = -1;
+    while (++i < plugins.length) {
+      const pluginInfo = await normalizePlugin<any>(plugins[i], this.cwd);
+      const context = Plugin.createContext<any>(this, pluginInfo);
+      const ret = await pluginInfo.plugin(context);
+      if (ret?.plugins) {
+        await this.initPlugins(ret.plugins);
+      }
+    }
+  }
 }

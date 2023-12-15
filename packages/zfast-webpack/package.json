@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "dev": "father dev",
-    "build": "father build"
+    "build": "father build --no-clean"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
