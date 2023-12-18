@@ -12,5 +12,5 @@ import { resolve } from "path";
       fs.remove(resolve(cwd, pkg.dir, name));
     });
   });
-  console.log('remove done...');
+  console.log('remove done');
 })();

@@ -48,7 +48,6 @@ const hook: IPlugin<App> = ({ hooks, paths }) => {
       "@@": paths.appTemp,
       react: dirname(require.resolve("react/package.json")),
       "react-dom": dirname(require.resolve("react-dom/package.json")),
-      "react-router": dirname(require.resolve("react-router/package.json")),
       "react-router-dom": dirname(
         require.resolve("react-router-dom/package.json")
       ),
@@ -67,41 +66,41 @@ const hook: IPlugin<App> = ({ hooks, paths }) => {
       "react-router-dom",
       "scheduler",
     ];
-    config.optimization.splitChunks({
-      cacheGroups: {
-        default: false,
-        defaultVendors: false,
-        vendors: {
-          name: "vendors",
-          chunks: "all",
-          test: new RegExp(
-            `[\\\\/]node_modules[\\\\/](${FRAMEWORK_BUNDLES.join(`|`)})[\\\\/]`
-          ),
-          priority: 40,
-          enforce: true,
-        },
-        shared: {
-          name(_module: any, chunks: any) {
-            const cryptoName = crypto
-              .createHash("sha1")
-              .update(
-                chunks.reduce((acc: any, chunk: any) => {
-                  return acc + chunk.name;
-                }, "")
-              )
-              .digest("base64")
-              .replace(/\//g, "")
-              .replace(/\+/g, "-")
-              .replace(/=/g, "_");
-            return `shared-${cryptoName}`;
-          },
-          priority: 10,
-          minChunks: 2,
-          reuseExistingChunk: true,
-          chunks: "async",
-        },
-      },
-    });
+    // config.optimization.splitChunks({
+    //   cacheGroups: {
+    //     default: false,
+    //     defaultVendors: false,
+    //     vendors: {
+    //       name: "vendors",
+    //       chunks: "all",
+    //       test: new RegExp(
+    //         `[\\\\/]node_modules[\\\\/](${FRAMEWORK_BUNDLES.join(`|`)})[\\\\/]`
+    //       ),
+    //       priority: 40,
+    //       enforce: true,
+    //     },
+    //     shared: {
+    //       name(_module: any, chunks: any) {
+    //         const cryptoName = crypto
+    //           .createHash("sha1")
+    //           .update(
+    //             chunks.reduce((acc: any, chunk: any) => {
+    //               return acc + chunk.name;
+    //             }, "")
+    //           )
+    //           .digest("base64")
+    //           .replace(/\//g, "")
+    //           .replace(/\+/g, "-")
+    //           .replace(/=/g, "_");
+    //         return `shared-${cryptoName}`;
+    //       },
+    //       priority: 10,
+    //       minChunks: 2,
+    //       reuseExistingChunk: true,
+    //       chunks: "async",
+    //     },
+    //   },
+    // });
   });
 };
 

@@ -7,19 +7,20 @@ import {
 } from "@zfast/core";
 import path from "path";
 import { normalizePath, writeTplFile, babelTsToJs } from "@zfast/utils";
-import convertFileToRoutes from "./routes/convertFileToRoutes";
-import { AsyncSeriesHook } from "tapable";
+import convertFileToRoutes from "./utils/convertFileToRoutes";
+import { AsyncSeriesHook, AsyncSeriesWaterfallHook } from "tapable";
 import defaultConfig from "./utils/defaultConfig";
 import type Config from "webpack-chain";
 import { Env as WebpackEnv, webpack } from "@zfast/webpack";
 
 class App extends AppCore {
   hasJsxRuntime: boolean;
-  paths!: IPaths & { appPages: string };
+  paths!: IPaths & { appPages: string; appRuntimePluginPath: string };
   hooks!: IHooks & {
     chainWebpack: AsyncSeriesHook<
       [Config, { env: WebpackEnv; webpack: typeof webpack }]
     >;
+    runtimePluginPaths: AsyncSeriesWaterfallHook<[string[]]>;
   };
   constructor(props: Omit<AppCoreOpts, "name">) {
     super({
@@ -41,6 +42,7 @@ class App extends AppCore {
     this.hooks = {
       ...this.hooks,
       chainWebpack: new AsyncSeriesHook(["memo", "opts"]),
+      runtimePluginPaths: new AsyncSeriesWaterfallHook(["paths"]),
     };
   }
 
@@ -56,6 +58,7 @@ class App extends AppCore {
       ...paths,
       appPages: path.resolve(paths.appSrc, "pages"),
       appEntry: path.resolve(paths.appTemp, "zfast"),
+      appRuntimePluginPath: path.resolve(paths.appSrc, "plugin"),
     };
   }
 
@@ -85,6 +88,7 @@ class App extends AppCore {
             allowEmptyRoutes: false,
           })
         ).routes;
+
     const routeComponents: string[] = ["{"];
     function visitFileRoutes(fileRoutes: any[]) {
       fileRoutes.forEach((fileRoute: any) => {
@@ -95,8 +99,11 @@ class App extends AppCore {
         if (fileRoute.isDir) {
           delete fileRoute.isDir;
         } else {
+          const chunkName = fileRoute.path.replace(/\//g, "_");
           routeComponents.push(
-            `'${fileRoute.id}': React.lazy(() => import('${normalizePath(
+            `'${
+              fileRoute.id
+            }': React.lazy(() => import(/* webpackChunkName: "${chunkName}" */'${normalizePath(
               p
             )}')),`
           );
@@ -134,16 +141,31 @@ class App extends AppCore {
         tplPath: this.getTplInputPath("exports.tpl"),
         transform: this.transformContent.bind(this),
       }),
-      writeTplFile({
-        outputPath: this.getTmpOutputPath("zfast"),
-        tplPath: this.getTplInputPath("zfast.tpl"),
-        transform: this.transformContent.bind(this),
-        context: {
-          renderPath: path.join(path.dirname(__filename), "render"),
-          basename: this.config.basename || "/",
-          historyType: this.config.history?.type || "browser",
-        },
-      }),
+      (async () => {
+        const appRuntimePluginPath = fs.existsSync(
+          this.paths.appRuntimePluginPath
+        )
+          ? this.paths.appRuntimePluginPath
+          : null;
+        const runtimePluginPaths = await this.hooks.runtimePluginPaths.promise(
+          [appRuntimePluginPath].filter(Boolean) as string[]
+        );
+        await writeTplFile({
+          outputPath: this.getTmpOutputPath("zfast"),
+          tplPath: this.getTplInputPath("zfast.tpl"),
+          transform: this.transformContent.bind(this),
+          context: {
+            renderPath: path.join(path.dirname(__filename), "client/render"),
+            pluginPath: path.join(path.dirname(__filename), "client/plugin"),
+            basename: this.config.basename || "/",
+            historyType: this.config.history?.type || "browser",
+            runtimePlugins: runtimePluginPaths.map((path, index) => ({
+              index,
+              path,
+            })),
+          },
+        });
+      })(),
       (async () => {
         const { routeComponents, routes } = await this.getFileRoutes();
         await writeTplFile({
