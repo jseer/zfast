@@ -1,7 +1,7 @@
 import { render } from "{{{renderPath}}}";
 import PluginContainer from "{{{pluginPath}}}";
 import { createHistory } from "./core/history";
-import { routes } from "./core/routes";
+import { routes, routeComponents } from "./core/routes";
 {{#runtimePlugins}}
 import plugin_{{{index}}} from "{{{path}}}";
 {{/runtimePlugins}}
@@ -21,6 +21,7 @@ async function bootstrap() {
     const opts = {
         history,
         routes,
+        routeComponents,
         basename: "{{{basename}}}",
         pluginContainer,
     }

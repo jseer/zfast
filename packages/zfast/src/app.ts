@@ -10,7 +10,6 @@ import {
   normalizePath,
   writeTplFile,
   babelTsToJs,
-  object2TplStr,
 } from "@zfast/utils";
 import convertFileToRoutes from "./utils/convertFileToRoutes";
 import { AsyncSeriesHook, AsyncSeriesWaterfallHook } from "tapable";
@@ -93,25 +92,36 @@ class App extends AppCore {
             allowEmptyRoutes: false,
           })
         ).routes;
-    const routes = object2TplStr(fileRoutes, {
-      filter(key, item, obj) {
-        return key === "isDir" || key === "id" || (obj.isDir && key === "file");
-      },
-      transform(key, file, route) {
-        if (key === "file") {
-          const p =
-            path.isAbsolute(file) || file.startsWith("@/")
-              ? file
-              : path.join(pagesPath, file);
-          const chunkName = "p_" + route.id.replace(/\//g, "_");
-          return `"element": React.lazy(() => import(/* webpackChunkName: "${chunkName}" */'${normalizePath(
-            p
-          )}'))`;
+    const routeComponents: string[] = ["{"];
+    function visitFileRoutes(fileRoutes: any[]) {
+      fileRoutes.forEach((fileRoute: any) => {
+        const p =
+          path.isAbsolute(fileRoute.file) || fileRoute.file.startsWith("@/")
+            ? fileRoute.file
+            : path.join(pagesPath, fileRoute.file);
+        if (fileRoute.isDir) {
+          delete fileRoute.isDir;
+        } else {
+          const chunkName = "p_" + fileRoute.id.replace(/\//g, "_");
+          routeComponents.push(
+            `'${
+              fileRoute.id
+            }': React.lazy(() => import(/* webpackChunkName: "${chunkName}" */'${normalizePath(
+              p
+            )}')),`
+          );
         }
-      },
-    });
+        delete fileRoute.file;
+        if (fileRoute.children) {
+          visitFileRoutes(fileRoute.children);
+        }
+      });
+    }
+    visitFileRoutes(fileRoutes);
+    routeComponents.push("}");
     return {
-      routes,
+      routes: JSON.stringify(fileRoutes),
+      routeComponents: routeComponents.join('\n'),
     };
   }
 
@@ -160,13 +170,14 @@ class App extends AppCore {
         });
       })(),
       (async () => {
-        const { routes } = await this.getFileRoutes();
+        const { routes, routeComponents } = await this.getFileRoutes();
         await writeTplFile({
           outputPath: this.getTmpOutputPath("core/routes"),
           tplPath: this.getTplInputPath("routes.tpl"),
           transform: this.transformContent.bind(this),
           context: {
             routes,
+            routeComponents,
           },
         });
       })(),
