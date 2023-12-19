@@ -39,15 +39,9 @@ export function object2TplStr(obj: any, opts: IObject2TplStrOpts = {}) {
     });
     str += "]";
   } else {
-    if (transform) {
-      str += transform(undefined, obj, obj);
-    } else {
-      if (isNull(obj) || isUndefined(obj)) {
-        str += `${obj}`;
-      } else {
-        str += obj.toString();
-      }
-    }
+    str +=
+      (transform && transform(undefined, obj, obj)) ||
+      (isNull(obj) || isUndefined(obj) ? `${obj}` : obj.toString());
   }
   return str;
 }
