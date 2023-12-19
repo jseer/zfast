@@ -7,3 +7,5 @@ export { default as normalizePath } from "./normalizePath";
 export { default as writeTplFile } from "./writeTplFile";
 export { default as babelTsToJs } from "./babelTsToJs";
 export { resolveAsync } from "./resolve";
+export { object2TplStr } from "./object2TplStr";
+export * from "./utils";

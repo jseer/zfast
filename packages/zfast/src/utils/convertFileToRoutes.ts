@@ -30,7 +30,6 @@ async function convertFileToRoutes(opts: IOpts) {
     exclude,
   } = opts;
   const routesIdMap = new Map<string, IRoute>();
-  const routesPathMap = new Map<string, IRoute>();
   function setRoute(
     {
       id,
@@ -46,9 +45,6 @@ async function convertFileToRoutes(opts: IOpts) {
     routes: IRoute[]
   ) {
     const path = createPath(id, prefix);
-    if (routesPathMap.get(path)) {
-      return;
-    }
     let route = {
       id,
       file,
@@ -62,7 +58,6 @@ async function convertFileToRoutes(opts: IOpts) {
     }
     routes.push(route);
     routesIdMap.set(id, route);
-    routesPathMap.set(path, route);
   }
 
   async function convert(target: string) {
@@ -100,7 +95,7 @@ async function convertFileToRoutes(opts: IOpts) {
     return routes;
   }
   const routes = await convert(baseDir);
-  return { routes, routesIdMap, routesPathMap };
+  return { routes, routesIdMap };
 }
 
 function createId(p: string) {

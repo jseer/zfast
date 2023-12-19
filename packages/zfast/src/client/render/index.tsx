@@ -15,27 +15,9 @@ interface IRenderOpts {
 }
 
 async function render(opts: IRenderOpts) {
-  const { basename, history, routes, routeComponents, pluginContainer } = opts;
-  const transformRoutes = (routes: IRenderOpts["routes"]) => {
-    const routeArr: RouteObject[] = [];
-    routes.forEach((item: any) => {
-      const Comp = routeComponents[item.id];
-      const route: RouteObject = {
-        path: item.path,
-      };
-      if (Comp) {
-        route.element = <Comp />;
-      }
-      if (item.children) {
-        route.children = transformRoutes(item.children);
-      }
-      routeArr.push(route);
-    });
-    return routeArr;
-  };
-
+  const { basename, history, routes, pluginContainer } = opts;
   const [renderRoutes, loading] = await Promise.all([
-    pluginContainer.hooks.call("routes", transformRoutes(routes)),
+    pluginContainer.hooks.call("routes", routes),
     pluginContainer.hooks.call("loadingComponent", <div>loading ...</div>),
   ]);
   function Routes() {

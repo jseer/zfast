@@ -12,9 +12,9 @@ type BaseHooks =
 
 class PluginContainer<T extends string = BaseHooks> {
   hooks: Hooks<BaseHooks | T>;
-  plugins: IPluginContainerOpts["plugins"];
+  plugins: Readonly<IPluginContainerOpts["plugins"]>;
   constructor(opts: IPluginContainerOpts) {
-    this.plugins = opts.plugins;
+    this.plugins = Object.freeze(opts.plugins);
     this.hooks = new Hooks({
       routes: IHookTypes.asyncSeriesWaterfall,
       renderContainerId: IHookTypes.asyncSeriesWaterfall,

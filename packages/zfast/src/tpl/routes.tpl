@@ -1,8 +1,4 @@
 import React from "react";
+import type { RouteObject } from "react-router-dom";
 
-const routes = {{{ routes }}};
-const routeComponents = {{{ routeComponents }}};
-export {
-    routes,
-    routeComponents,
-}
+export const routes: RouteObject[] = {{{routes}}};
