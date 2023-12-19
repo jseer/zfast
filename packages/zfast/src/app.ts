@@ -104,7 +104,7 @@ class App extends AppCore {
               ? file
               : path.join(pagesPath, file);
           const chunkName = "p_" + route.id.replace(/\//g, "_");
-          return `'element': React.lazy(() => import(/* webpackChunkName: "${chunkName}" */'${normalizePath(
+          return `"element": React.lazy(() => import(/* webpackChunkName: "${chunkName}" */'${normalizePath(
             p
           )}'))`;
         }

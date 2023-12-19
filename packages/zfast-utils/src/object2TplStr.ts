@@ -25,7 +25,7 @@ export function object2TplStr(obj: any, opts: IObject2TplStrOpts = {}) {
       if (filter && filter(key, obj[key], obj)) continue;
       str +=
         (transform && transform(key, obj[key], obj)) ||
-        `'${key}':` + object2TplStr(obj[key], opts);
+        JSON.stringify(key) + ":" + object2TplStr(obj[key], opts);
       str += ",";
     }
     str += "}";
@@ -41,7 +41,9 @@ export function object2TplStr(obj: any, opts: IObject2TplStrOpts = {}) {
   } else {
     str +=
       (transform && transform(undefined, obj, obj)) ||
-      (isNull(obj) || isUndefined(obj) ? `${obj}` : obj.toString());
+      (isNumber(obj) || isString(obj) || isNull(obj) || isUndefined(obj)
+        ? JSON.stringify(obj)
+        : obj.toString());
   }
   return str;
 }
