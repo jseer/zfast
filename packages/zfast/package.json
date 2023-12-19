@@ -1,6 +1,6 @@
 {
   "name": "zfast",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "bin": {
     "zfast": "./bin/zfast.js"

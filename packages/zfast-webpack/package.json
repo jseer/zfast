@@ -1,6 +1,6 @@
 {
   "name": "@zfast/webpack",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "scripts": {
     "dev": "father dev",
