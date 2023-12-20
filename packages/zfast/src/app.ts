@@ -8,7 +8,10 @@ import {
 import path from "path";
 import { normalizePath, writeTplFile, babelTsToJs } from "@zfast/utils";
 import convertFileToRoutes from "./utils/convertFileToRoutes";
-import { AsyncSeriesHook, AsyncSeriesWaterfallHook } from "tapable";
+import {
+  AsyncSeriesHook,
+  AsyncParallelConcatHook,
+} from "kooh";
 import defaultConfig from "./utils/defaultConfig";
 import type Config from "webpack-chain";
 import { Env as WebpackEnv, webpack } from "@zfast/webpack";
@@ -24,10 +27,10 @@ class App extends AppCore {
     chainWebpack: AsyncSeriesHook<
       [Config, { env: WebpackEnv; webpack: typeof webpack }]
     >;
-    runtimePluginPaths: AsyncSeriesWaterfallHook<[string[]]>;
-    entryImports: AsyncSeriesWaterfallHook<[IEntryImport[]]>;
-    entryFooterCodes: AsyncSeriesWaterfallHook<[ICodeItem[]]>;
-    entryHeaderCodes: AsyncSeriesWaterfallHook<[ICodeItem[]]>;
+    runtimePluginPaths: AsyncParallelConcatHook<[string[]]>;
+    entryImports: AsyncParallelConcatHook<[IEntryImport[]]>;
+    entryFooterCodes: AsyncParallelConcatHook<[ICodeItem[]]>;
+    entryHeaderCodes: AsyncParallelConcatHook<[ICodeItem[]]>;
   };
   constructor(props: Omit<AppCoreOpts, "name">) {
     super({
@@ -49,11 +52,11 @@ class App extends AppCore {
     this.defaultConfig = defaultConfig;
     this.hooks = {
       ...this.hooks,
-      chainWebpack: new AsyncSeriesHook(["memo", "opts"]),
-      runtimePluginPaths: new AsyncSeriesWaterfallHook(["paths"]),
-      entryImports: new AsyncSeriesWaterfallHook(["imports"]),
-      entryHeaderCodes: new AsyncSeriesWaterfallHook(["codes"]),
-      entryFooterCodes: new AsyncSeriesWaterfallHook(["codes"]),
+      chainWebpack: new AsyncSeriesHook(),
+      runtimePluginPaths: new AsyncParallelConcatHook(),
+      entryImports: new AsyncParallelConcatHook(),
+      entryHeaderCodes: new AsyncParallelConcatHook(),
+      entryFooterCodes: new AsyncParallelConcatHook(),
     };
   }
 
@@ -163,12 +166,12 @@ class App extends AppCore {
           entryHeaderCodes,
           entryFooterCodes,
         ] = await Promise.all([
-          this.hooks.runtimePluginPaths.promise(
+          this.hooks.runtimePluginPaths.call(
             [appRuntimePluginPath].filter(Boolean)
           ),
-          this.hooks.entryImports.promise([]),
-          this.hooks.entryHeaderCodes.promise([]),
-          this.hooks.entryFooterCodes.promise([]),
+          this.hooks.entryImports.call([]),
+          this.hooks.entryHeaderCodes.call([]),
+          this.hooks.entryFooterCodes.call([]),
         ]);
         await writeTplFile({
           outputPath: this.getTmpOutputPath("zfast"),

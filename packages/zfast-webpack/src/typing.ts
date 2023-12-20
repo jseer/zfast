@@ -2,7 +2,7 @@ import Config from "webpack-chain";
 import { Env } from "./constants";
 import webpack from "webpack";
 import { App } from "@zfast/core";
-import type { AsyncSeriesHook } from "tapable";
+import type { AsyncSeriesHook } from "kooh";
 
 export interface BaseOpts {
   // chainWebpack?: {

@@ -5,9 +5,9 @@ import { RouteObject, useRoutes } from "react-router-dom";
 import { History } from "@remix-run/router";
 import PluginContainer from "../plugin";
 import { AppContext } from "./context";
-import { RouteComponentsById, IRoute } from "./type";
+import { RouteComponentsById, IRoute, IPluginContainerHooks } from "./type";
 
-export { RouteComponentsById, IRoute };
+export { RouteComponentsById, IRoute, IPluginContainerHooks };
 
 interface IRenderOpts {
   basename: string;
@@ -20,13 +20,11 @@ interface IRenderOpts {
 async function render(opts: IRenderOpts) {
   const { basename, history, pluginContainer } = opts;
 
-  const { routes, routeComponents } = await pluginContainer.hooks.call(
-    "routesWithComponents",
-    {
+  const { routes, routeComponents } =
+    await pluginContainer.hooks.routesWithComponents.call({
       routes: opts.routes,
       routeComponents: opts.routeComponents,
-    }
-  );
+    });
 
   const transformRoutes = (routes: IRenderOpts["routes"]) => {
     const routeArr: RouteObject[] = [];
@@ -46,8 +44,8 @@ async function render(opts: IRenderOpts) {
     return routeArr;
   };
   const [renderRoutes, loading] = await Promise.all([
-    pluginContainer.hooks.call("routes", transformRoutes(routes)),
-    pluginContainer.hooks.call("loadingComponent", <div>loading ...</div>),
+    pluginContainer.hooks.routes.call(transformRoutes(routes)),
+    pluginContainer.hooks.loadingComponent.call(<div>loading ...</div>),
   ]);
   function Routes() {
     return useRoutes(renderRoutes);
@@ -62,7 +60,7 @@ async function render(opts: IRenderOpts) {
     );
   }
 
-  const container = await pluginContainer.hooks.call("container", <App />);
+  const container = await pluginContainer.hooks.container.call(<App />);
   const root = ReactDOM.createRoot(
     document.getElementById("root") as HTMLElement
   );

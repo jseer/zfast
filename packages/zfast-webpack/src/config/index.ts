@@ -145,7 +145,7 @@ export async function getConfig(opts: ConfigOpts) {
   addPlugins(config, applyOpts);
 
   if (hooks?.chainWebpack) {
-    await hooks.chainWebpack.promise(config, {
+    await hooks.chainWebpack.call(config, {
       env: opts.env,
       webpack,
     });

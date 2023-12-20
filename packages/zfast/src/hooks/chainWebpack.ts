@@ -6,7 +6,7 @@ import { IPlugin } from "@zfast/core";
 import App from "../app";
 
 const hook: IPlugin<App> = ({ hooks, paths }) => {
-  hooks.chainWebpack.tapPromise("zfast-chainWebpack-hook", async (config, { env }) => {
+  hooks.chainWebpack.add(async (config, { env }) => {
     // html
     const isEnvProduction = env === "production";
     config.plugin("html-webpack-plugin").use(HtmlWebpackPlugin, [

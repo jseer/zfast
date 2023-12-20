@@ -99,8 +99,8 @@ importers:
         specifier: ^5.5.3
         version: 5.5.4(webpack@5.89.0)
       kooh:
-        specifier: ^1.0.6
-        version: 1.0.6
+        specifier: ^1.1.3
+        version: 1.1.3
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -116,21 +116,18 @@ importers:
       react-router-dom:
         specifier: ^6.20.1
         version: 6.20.1(react-dom@18.2.0)(react@18.2.0)
-      tapable:
-        specifier: ^2.2.1
-        version: 2.2.1
 
   packages/zfast-core:
     dependencies:
       '@zfast/utils':
         specifier: workspace:^
         version: link:../zfast-utils
+      kooh:
+        specifier: ^1.1.3
+        version: 1.1.3
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
-      tapable:
-        specifier: ^2.2.1
-        version: 2.2.1
 
   packages/zfast-utils:
     dependencies:
@@ -155,6 +152,9 @@ importers:
       fs-extra:
         specifier: ^11.2.0
         version: 11.2.0
+      kooh:
+        specifier: ^1.1.3
+        version: 1.1.3
       mustache:
         specifier: ^4.2.0
         version: 4.2.0
@@ -203,6 +203,9 @@ importers:
       fs-extra:
         specifier: ^11.2.0
         version: 11.2.0
+      kooh:
+        specifier: ^1.1.3
+        version: 1.1.3
       less:
         specifier: ^4.2.0
         version: 4.2.0
@@ -7697,8 +7700,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /kooh@1.0.6:
-    resolution: {integrity: sha512-HQzLlfljh85T3dlICpycph3O1JkcPod0ocqSRvVGS988tbHJa7xJIAz9gL4FoOI4ga2JTtgFogd8TxlnOO8/eQ==}
+  /kooh@1.1.3:
+    resolution: {integrity: sha512-XFxnm5B7og9U9KPG6OD83wWLOMCEYz/ELGRMdCmkr1NCNelC1OAnnl/vzazwhKz0jRojSkROvW81atviy2mVHw==}
     dev: false
 
   /launch-editor@2.6.1:

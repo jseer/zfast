@@ -1,7 +1,7 @@
 import { loadConfigFromFile, loadEnv, createLogger } from "@zfast/utils";
 import fs from "fs";
 import path from "path";
-import { AsyncSeriesWaterfallHook, Hook } from "tapable";
+import { AsyncSeriesWaterfallHook, Hook } from "kooh";
 import { Plugin, normalizePlugin, IPlugin } from "./plugin";
 import { merge } from "lodash";
 
@@ -32,9 +32,9 @@ export interface IPaths {
   [key: string]: string;
 }
 export interface IHooks {
-  config: AsyncSeriesWaterfallHook<Record<string, any>>;
-  paths: AsyncSeriesWaterfallHook<IPaths>;
-  [key: string]: Hook<any, any, any>;
+  config: AsyncSeriesWaterfallHook<[Record<string, any>]>;
+  paths: AsyncSeriesWaterfallHook<[IPaths]>;
+  [key: string]: Hook<Function>;
 }
 
 export class App {
@@ -65,8 +65,8 @@ export class App {
     this.pkg = require(this.paths.appPackageJson);
     this.userConfig = this.getUserConfig();
     this.hooks = {
-      config: new AsyncSeriesWaterfallHook(["config"]),
-      paths: new AsyncSeriesWaterfallHook(["paths"]),
+      config: new AsyncSeriesWaterfallHook(),
+      paths: new AsyncSeriesWaterfallHook(),
     };
   }
 
@@ -117,11 +117,11 @@ export class App {
     if (this.config.hooks) {
       await this.config.hooks(this.hooks);
     }
-    this.paths = await this.hooks.paths.promise(this.paths);
+    this.paths = await this.hooks.paths.call(this.paths);
     this.config = merge(
       {},
       this.defaultConfig,
-      await this.hooks.config.promise(this.userConfig)
+      await this.hooks.config.call(this.userConfig)
     );
   }
 
