@@ -1,5 +1,5 @@
 import { build } from "@zfast/webpack";
-import App from "./app";
+import { App } from "./app";
 import getCwd from "./utils/getCwd";
 import fs from "fs-extra";
 import {

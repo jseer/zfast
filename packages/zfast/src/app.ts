@@ -20,7 +20,7 @@ import { ICodeItem, IEntryImport } from "./types";
 import { codes2Str } from "./utils/codes2Str";
 import { DEFAULT_CONFIG_FILES } from "./constants";
 
-class App extends AppCore {
+export class App extends AppCore {
   hasJsxRuntime: boolean;
   paths!: IPaths & { appPages: string; appRuntimePluginPath: string };
   hooks!: IHooks & {
@@ -207,5 +207,3 @@ class App extends AppCore {
     ]);
   }
 }
-
-export default App;

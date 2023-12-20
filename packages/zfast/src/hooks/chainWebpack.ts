@@ -3,7 +3,7 @@ import HtmlWebpackPlugin from "html-webpack-plugin";
 import InlineChunkHtmlPlugin from "react-dev-utils/InlineChunkHtmlPlugin";
 import path, { dirname } from "path";
 import { IPlugin } from "@zfast/core";
-import App from "../app";
+import { App } from "../app";
 
 const hook: IPlugin<App> = ({ hooks, paths }) => {
   hooks.chainWebpack.add(async (config, { env }) => {

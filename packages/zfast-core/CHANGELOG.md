@@ -1,5 +1,13 @@
 # @zfast/core
 
+## 1.0.5
+
+### Patch Changes
+
+- kooh
+- Updated dependencies
+  - @zfast/utils@1.0.5
+
 ## 1.0.4
 
 ### Patch Changes

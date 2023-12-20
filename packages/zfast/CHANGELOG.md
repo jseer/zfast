@@ -1,5 +1,15 @@
 # zfast
 
+## 1.0.6
+
+### Patch Changes
+
+- kooh
+- Updated dependencies
+  - @zfast/core@1.0.5
+  - @zfast/utils@1.0.5
+  - @zfast/webpack@1.0.5
+
 ## 1.0.5
 
 ### Patch Changes

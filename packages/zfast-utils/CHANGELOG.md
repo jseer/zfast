@@ -1,5 +1,11 @@
 # @zfast/utils
 
+## 1.0.5
+
+### Patch Changes
+
+- kooh
+
 ## 1.0.4
 
 ### Patch Changes

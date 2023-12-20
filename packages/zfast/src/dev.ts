@@ -1,5 +1,5 @@
 import { dev } from "@zfast/webpack";
-import App from "./app";
+import {App} from "./app";
 import getCwd from "./utils/getCwd";
 import { BaseOpts } from "./types";
 import clearConsole from "react-dev-utils/clearConsole";

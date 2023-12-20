@@ -1,5 +1,5 @@
 import { IPlugin } from "@zfast/core";
-import App from "./app";
+import {App} from "./app";
 
 export interface BaseOpts {
   root?: string;
@@ -16,8 +16,8 @@ export interface ICodeItem {
 }
 
 export interface IConfig {
-  basename: string;
-  history: { type: "browser" | "hash" | "memory" };
-  publicPath: string;
-  plugins: IPlugin<App>[];
+  basename?: string;
+  history?: { type: "browser" | "hash" | "memory" };
+  publicPath?: string;
+  plugins?: IPlugin<App>[];
 }
