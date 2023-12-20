@@ -5,6 +5,9 @@ import { routes, routeComponents } from "./core/routes";
 {{#runtimePlugins}}
 import plugin_{{{index}}} from "{{{path}}}";
 {{/runtimePlugins}}
+{{{ entryImports }}}
+
+{{{entryHeaderCodes}}}
 
 async function bootstrap() {
     const pluginContainer = new PluginContainer({
@@ -29,3 +32,5 @@ async function bootstrap() {
 }
 
 bootstrap();
+
+{{{entryFooterCodes}}}

@@ -1,4 +1,9 @@
-export const DEFAULT_CONFIG_FILES = ["zfast.config.ts", "zfast.config.js"];
+export const DEFAULT_CONFIG_FILES = [
+  ".zfastrc.ts",
+  ".zfastrc.js",
+  ".zfast.config.ts",
+  ".zfast.config.js",
+];
 
 export enum Env {
   development = "development",

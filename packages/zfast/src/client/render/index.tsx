@@ -18,7 +18,16 @@ interface IRenderOpts {
 }
 
 async function render(opts: IRenderOpts) {
-  const { basename, history, routes, routeComponents, pluginContainer } = opts;
+  const { basename, history, pluginContainer } = opts;
+
+  const { routes, routeComponents } = await pluginContainer.hooks.call(
+    "routesWithComponents",
+    {
+      routes: opts.routes,
+      routeComponents: opts.routeComponents,
+    }
+  );
+
   const transformRoutes = (routes: IRenderOpts["routes"]) => {
     const routeArr: RouteObject[] = [];
     routes.forEach((item: any) => {
@@ -53,12 +62,9 @@ async function render(opts: IRenderOpts) {
     );
   }
 
-  const [container, rootId] = await Promise.all([
-    pluginContainer.hooks.call("container", <App />),
-    pluginContainer.hooks.call("renderContainerId", "root"),
-  ]);
+  const container = await pluginContainer.hooks.call("container", <App />);
   const root = ReactDOM.createRoot(
-    document.getElementById(rootId) as HTMLElement
+    document.getElementById("root") as HTMLElement
   );
   root.render(
     <AppContext.Provider value={{}}>{container}</AppContext.Provider>

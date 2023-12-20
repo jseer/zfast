@@ -19,7 +19,6 @@ export default async function (opts: BuildOpts) {
   const cwd = getCwd(opts.root);
   const app = new App({
     cwd,
-    defaultConfigFiles: DEFAULT_CONFIG_FILES,
     configFile: opts.configFile,
     env: "production",
     command: "build",

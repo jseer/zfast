@@ -99,8 +99,8 @@ importers:
         specifier: ^5.5.3
         version: 5.5.4(webpack@5.89.0)
       kooh:
-        specifier: ^1.0.5
-        version: 1.0.5
+        specifier: ^1.0.6
+        version: 1.0.6
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -7697,8 +7697,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /kooh@1.0.5:
-    resolution: {integrity: sha512-vFo0t5XcsBul0pebuOoYzYOHdXMMBRnkHDCj+Y4N8gA3UlXJOQ9mipFRVOzssWkooBLGQghCyOlPL7xajSgJtg==}
+  /kooh@1.0.6:
+    resolution: {integrity: sha512-HQzLlfljh85T3dlICpycph3O1JkcPod0ocqSRvVGS988tbHJa7xJIAz9gL4FoOI4ga2JTtgFogd8TxlnOO8/eQ==}
     dev: false
 
   /launch-editor@2.6.1:

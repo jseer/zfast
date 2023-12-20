@@ -110,7 +110,9 @@ export class App {
     if (fs.existsSync(this.paths.appTemp)) {
       fs.rmSync(this.paths.appTemp, { force: true, recursive: true });
     }
-    const plugins = this.opts.plugins || [];
+    const plugins = (this.opts.plugins || []).concat(
+      this.userConfig.plugins || []
+    );
     await this.initPlugins(plugins);
     if (this.config.hooks) {
       await this.config.hooks(this.hooks);

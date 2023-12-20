@@ -6,7 +6,7 @@ interface IPluginContainerOpts {
 
 type BaseHooks =
   | "routes"
-  | "renderContainerId"
+  | "routesWithComponents"
   | "container"
   | "loadingComponent";
 
@@ -17,16 +17,18 @@ class PluginContainer<T extends string = BaseHooks> {
     this.plugins = Object.freeze(opts.plugins);
     this.hooks = new Hooks({
       routes: IHookTypes.asyncSeriesWaterfall,
-      renderContainerId: IHookTypes.asyncSeriesWaterfall,
+      routesWithComponents: IHookTypes.asyncSeriesWaterfall,
       container: IHookTypes.asyncSeriesWaterfall,
       loadingComponent: IHookTypes.asyncSeriesWaterfall,
     });
   }
 
   async run() {
-    return this.plugins.reduce((promise, plugin) => {
-      return promise.then((o) => plugin(o));
-    }, Promise.resolve(this));
+    await Promise.all(
+      this.plugins.map((plugin) => {
+        plugin(this);
+      })
+    );
   }
 }
 

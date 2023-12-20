@@ -1,1 +1,3 @@
-export { render } from './client/render';
+export { render } from "./client/render";
+export { defineConfig } from "./defineConfig";
+export { ICodeItem, IEntryImport } from "./types";

@@ -6,16 +6,16 @@ import {
   IHooks,
 } from "@zfast/core";
 import path from "path";
-import {
-  normalizePath,
-  writeTplFile,
-  babelTsToJs,
-} from "@zfast/utils";
+import { normalizePath, writeTplFile, babelTsToJs } from "@zfast/utils";
 import convertFileToRoutes from "./utils/convertFileToRoutes";
 import { AsyncSeriesHook, AsyncSeriesWaterfallHook } from "tapable";
 import defaultConfig from "./utils/defaultConfig";
 import type Config from "webpack-chain";
 import { Env as WebpackEnv, webpack } from "@zfast/webpack";
+import { imports2Str } from "./utils/imports2Str";
+import { ICodeItem, IEntryImport } from "./types";
+import { codes2Str } from "./utils/codes2Str";
+import { DEFAULT_CONFIG_FILES } from "./constants";
 
 class App extends AppCore {
   hasJsxRuntime: boolean;
@@ -25,11 +25,15 @@ class App extends AppCore {
       [Config, { env: WebpackEnv; webpack: typeof webpack }]
     >;
     runtimePluginPaths: AsyncSeriesWaterfallHook<[string[]]>;
+    entryImports: AsyncSeriesWaterfallHook<[IEntryImport[]]>;
+    entryFooterCodes: AsyncSeriesWaterfallHook<[ICodeItem[]]>;
+    entryHeaderCodes: AsyncSeriesWaterfallHook<[ICodeItem[]]>;
   };
   constructor(props: Omit<AppCoreOpts, "name">) {
     super({
       ...props,
       name: "zfast",
+      defaultConfigFiles: DEFAULT_CONFIG_FILES,
     });
     this.hasJsxRuntime = (() => {
       if (process.env.DISABLE_NEW_JSX_TRANSFORM === "true") {
@@ -47,6 +51,9 @@ class App extends AppCore {
       ...this.hooks,
       chainWebpack: new AsyncSeriesHook(["memo", "opts"]),
       runtimePluginPaths: new AsyncSeriesWaterfallHook(["paths"]),
+      entryImports: new AsyncSeriesWaterfallHook(["imports"]),
+      entryHeaderCodes: new AsyncSeriesWaterfallHook(["codes"]),
+      entryFooterCodes: new AsyncSeriesWaterfallHook(["codes"]),
     };
   }
 
@@ -121,7 +128,7 @@ class App extends AppCore {
     routeComponents.push("}");
     return {
       routes: JSON.stringify(fileRoutes),
-      routeComponents: routeComponents.join('\n'),
+      routeComponents: routeComponents.join("\n"),
     };
   }
 
@@ -149,10 +156,20 @@ class App extends AppCore {
           this.paths.appRuntimePluginPath
         )
           ? this.paths.appRuntimePluginPath
-          : null;
-        const runtimePluginPaths = await this.hooks.runtimePluginPaths.promise(
-          [appRuntimePluginPath].filter(Boolean) as string[]
-        );
+          : "";
+        const [
+          runtimePluginPaths,
+          entryImports,
+          entryHeaderCodes,
+          entryFooterCodes,
+        ] = await Promise.all([
+          this.hooks.runtimePluginPaths.promise(
+            [appRuntimePluginPath].filter(Boolean)
+          ),
+          this.hooks.entryImports.promise([]),
+          this.hooks.entryHeaderCodes.promise([]),
+          this.hooks.entryFooterCodes.promise([]),
+        ]);
         await writeTplFile({
           outputPath: this.getTmpOutputPath("zfast"),
           tplPath: this.getTplInputPath("zfast.tpl"),
@@ -166,6 +183,9 @@ class App extends AppCore {
               index,
               path,
             })),
+            entryImports: imports2Str(entryImports),
+            entryFooterCodes: codes2Str(entryFooterCodes),
+            entryHeaderCodes: codes2Str(entryHeaderCodes),
           },
         });
       })(),

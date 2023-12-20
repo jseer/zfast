@@ -1,7 +1,6 @@
 import { dev } from "@zfast/webpack";
 import App from "./app";
 import getCwd from "./utils/getCwd";
-import { DEFAULT_CONFIG_FILES } from "./constants";
 import { BaseOpts } from "./types";
 import clearConsole from "react-dev-utils/clearConsole";
 import openBrowser from "react-dev-utils/openBrowser";
@@ -15,7 +14,6 @@ export default async function (opts: DevOpts) {
   const cwd = getCwd(opts.root);
   const app = new App({
     cwd,
-    defaultConfigFiles: DEFAULT_CONFIG_FILES,
     configFile: opts.configFile,
     env: "development",
     command: "dev",
