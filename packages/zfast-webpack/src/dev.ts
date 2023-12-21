@@ -28,14 +28,13 @@ export async function dev(opts: DevOpts): Promise<{
     debug("port is null");
     return Promise.reject("cancel to found port");
   }
-  const { paths, logger, publicPath: userPublicPath, pkg, fastRefresh, hooks } = opts;
+  const { paths, logger, publicPath: userPublicPath, pkg, fastRefresh, hooks, useTypeScript } = opts;
   const publicPath = getPublicPath(
     Env.production,
     pkg.homepage,
     userPublicPath
   );
   const appName = require(paths.appPackageJson).name;
-  const useTypeScript = fs.existsSync(paths.appTsConfig);
   const urls = prepareUrls(protocol, HOST, port);
   const useYarn = fs.existsSync(paths.yarnLockFile);
 

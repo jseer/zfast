@@ -65,6 +65,9 @@ importers:
       father:
         specifier: ^4.3.7
         version: 4.3.7(@types/node@20.10.3)(webpack@5.89.0)
+      kooh:
+        specifier: ^1.1.4
+        version: 1.1.4
       tapable:
         specifier: ^2.2.1
         version: 2.2.1
@@ -99,8 +102,8 @@ importers:
         specifier: ^5.5.3
         version: 5.5.4(webpack@5.89.0)
       kooh:
-        specifier: ^1.1.3
-        version: 1.1.3
+        specifier: ^1.1.4
+        version: 1.1.4
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -123,8 +126,8 @@ importers:
         specifier: workspace:^
         version: link:../zfast-utils
       kooh:
-        specifier: ^1.1.3
-        version: 1.1.3
+        specifier: ^1.1.4
+        version: 1.1.4
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -152,9 +155,6 @@ importers:
       fs-extra:
         specifier: ^11.2.0
         version: 11.2.0
-      kooh:
-        specifier: ^1.1.3
-        version: 1.1.3
       mustache:
         specifier: ^4.2.0
         version: 4.2.0
@@ -203,9 +203,6 @@ importers:
       fs-extra:
         specifier: ^11.2.0
         version: 11.2.0
-      kooh:
-        specifier: ^1.1.3
-        version: 1.1.3
       less:
         specifier: ^4.2.0
         version: 4.2.0
@@ -7700,9 +7697,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /kooh@1.1.3:
-    resolution: {integrity: sha512-XFxnm5B7og9U9KPG6OD83wWLOMCEYz/ELGRMdCmkr1NCNelC1OAnnl/vzazwhKz0jRojSkROvW81atviy2mVHw==}
-    dev: false
+  /kooh@1.1.4:
+    resolution: {integrity: sha512-l2Kaf4U12EpgLFCs6kYkWJ1Trfa2AuLgXqf3ikjD09OM/qMgWCzGcfq6w0LS8mWPZl4hECmkhwjRjrKYHsenvQ==}
 
   /launch-editor@2.6.1:
     resolution: {integrity: sha512-eB/uXmFVpY4zezmGp5XtU21kwo7GBbKB+EQ+UZeWtGb9yAM5xt/Evk+lYH3eRNAtId+ej4u7TYPFZ07w4s7rRw==}

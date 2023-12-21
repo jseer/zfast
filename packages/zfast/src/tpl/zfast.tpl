@@ -1,6 +1,4 @@
-import { render } from "{{{renderPath}}}";
-import PluginContainer from "{{{pluginPath}}}";
-import { createHistory } from "./core/history";
+import { render, PluginContainer } from "zfast";
 import { routes, routeComponents } from "./core/routes";
 {{#runtimePlugins}}
 import plugin_{{{index}}} from "{{{path}}}";
@@ -18,11 +16,8 @@ async function bootstrap() {
         ]
     });
     await pluginContainer.run();
-    const history = createHistory({
-        type: "{{historyType}}"
-    });
     const opts = {
-        history,
+        historyType: "{{{historyType}}}",
         routes,
         routeComponents,
         basename: "{{{basename}}}",

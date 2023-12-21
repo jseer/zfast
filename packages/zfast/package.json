@@ -10,9 +10,10 @@
     "build": "father build --no-clean"
   },
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "index.d.ts"
   ],
   "keywords": [],
   "author": "",
@@ -25,7 +26,7 @@
     "commander": "^11.1.0",
     "fs-extra": "^11.2.0",
     "html-webpack-plugin": "^5.5.3",
-    "kooh": "^1.1.3",
+    "kooh": "^1.1.4",
     "react": "^18.2.0",
     "react-dev-utils": "^12.0.1",
     "react-dom": "^18.2.0",

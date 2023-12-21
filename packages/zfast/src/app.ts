@@ -5,20 +5,20 @@ import {
   IPaths,
   IHooks,
 } from "@zfast/core";
-import path from "path";
+import path, { isAbsolute, join } from "path";
 import { normalizePath, writeTplFile, babelTsToJs } from "@zfast/utils";
 import convertFileToRoutes from "./utils/convertFileToRoutes";
-import {
-  AsyncSeriesHook,
-  AsyncParallelConcatHook,
-} from "kooh";
+import { AsyncSeriesHook, AsyncParallelConcatHook } from "kooh";
 import defaultConfig from "./utils/defaultConfig";
 import type Config from "webpack-chain";
 import { Env as WebpackEnv, webpack } from "@zfast/webpack";
-import { imports2Str } from "./utils/imports2Str";
-import { ICodeItem, IEntryImport } from "./types";
-import { codes2Str } from "./utils/codes2Str";
+import { mapImports } from "./utils/mapImports";
+import { IAppExports, ICodeItem, IConfig, IEntryImport, IRoute } from "./types";
+import { mapCodes } from "./utils/mapCodes";
 import { DEFAULT_CONFIG_FILES } from "./constants";
+import { IRouteWithId } from "./client/types";
+import { mapExports } from "./utils/mapExports";
+import plugins from "./plugins";
 
 export class App extends AppCore {
   hasJsxRuntime: boolean;
@@ -27,16 +27,19 @@ export class App extends AppCore {
     chainWebpack: AsyncSeriesHook<
       [Config, { env: WebpackEnv; webpack: typeof webpack }]
     >;
-    runtimePluginPaths: AsyncParallelConcatHook<[string[]]>;
-    entryImports: AsyncParallelConcatHook<[IEntryImport[]]>;
-    entryFooterCodes: AsyncParallelConcatHook<[ICodeItem[]]>;
-    entryHeaderCodes: AsyncParallelConcatHook<[ICodeItem[]]>;
+    runtimePluginPaths: AsyncParallelConcatHook<[], string>;
+    entryImports: AsyncParallelConcatHook<[], IEntryImport>;
+    entryFooterCodes: AsyncParallelConcatHook<[], ICodeItem>;
+    entryHeaderCodes: AsyncParallelConcatHook<[], ICodeItem>;
+    appExports: AsyncParallelConcatHook<[], IAppExports>;
   };
+  config!: IConfig;
   constructor(props: Omit<AppCoreOpts, "name">) {
     super({
       ...props,
       name: "zfast",
       defaultConfigFiles: DEFAULT_CONFIG_FILES,
+      plugins,
     });
     this.hasJsxRuntime = (() => {
       if (process.env.DISABLE_NEW_JSX_TRANSFORM === "true") {
@@ -57,6 +60,8 @@ export class App extends AppCore {
       entryImports: new AsyncParallelConcatHook(),
       entryHeaderCodes: new AsyncParallelConcatHook(),
       entryFooterCodes: new AsyncParallelConcatHook(),
+      exportsCodes: new AsyncParallelConcatHook(),
+      appExports: new AsyncParallelConcatHook(),
     };
   }
 
@@ -82,10 +87,9 @@ export class App extends AppCore {
   }
 
   getTmpOutputPath(p: string, x: string = "") {
-    const useTypeScript = fs.existsSync(this.paths.appTsConfig);
     return path.join(
       this.paths.appTemp,
-      `${p}${useTypeScript ? ".ts" : ".js"}${x}`
+      `${p}${this.useTypeScript ? ".ts" : ".js"}${x}`
     );
   }
   getTplInputPath(p: string) {
@@ -94,7 +98,7 @@ export class App extends AppCore {
 
   async getFileRoutes() {
     const pagesPath = this.paths.appPages;
-    const fileRoutes = this.config.routes
+    const routes = this.config.routes
       ? this.config.routes
       : (
           await convertFileToRoutes({
@@ -103,57 +107,81 @@ export class App extends AppCore {
           })
         ).routes;
     const routeComponents: string[] = ["{"];
-    function visitFileRoutes(fileRoutes: any[]) {
-      fileRoutes.forEach((fileRoute: any) => {
-        const p =
-          path.isAbsolute(fileRoute.file) || fileRoute.file.startsWith("@/")
-            ? fileRoute.file
-            : path.join(pagesPath, fileRoute.file);
-        if (fileRoute.isDir) {
-          delete fileRoute.isDir;
-        } else {
-          const chunkName = "p_" + fileRoute.id.replace(/\//g, "_");
+    function createPath(component: string) {
+      return normalizePath(
+        isAbsolute(component) || component.startsWith("@/")
+          ? component
+          : join(pagesPath, component)
+      );
+    }
+    let componentId = 0;
+    const imports: string[] = [];
+    const wrapperMap: Map<string, number> = new Map();
+    function visitRoutes(routes: IRoute[]) {
+      routes.forEach((route) => {
+        const { component, path, children, wrappers } = route;
+        if (component) {
+          const id = componentId++;
+          const chunkName =
+            "p_" + path.replace(/\//g, "_").replace(/\$|:/g, "$");
           routeComponents.push(
-            `'${
-              fileRoute.id
-            }': React.lazy(() => import(/* webpackChunkName: "${chunkName}" */'${normalizePath(
-              p
-            )}')),`
+            `${id}: React.lazy(() => import(/* webpackChunkName: "${chunkName}" */"${createPath(
+              component
+            )}")),`
           );
+          (route as IRouteWithId).id = id;
         }
-        delete fileRoute.file;
-        if (fileRoute.children) {
-          visitFileRoutes(fileRoute.children);
+        if (wrappers) {
+          const wrapperIds: number[] = [];
+          (route as IRouteWithId).wrapperIds = wrapperIds;
+          wrappers.forEach((wrapper, index) => {
+            const p = createPath(wrapper);
+            const cacheId = wrapperMap.get(p);
+            if (cacheId) {
+              wrapperIds[index] = cacheId;
+              return;
+            }
+            const id = componentId++;
+            wrapperIds[index] = id;
+            imports.push(`import Wrapper_${id} from "${p}";`);
+            routeComponents.push(`${id}: Wrapper_${id},`);
+            wrapperMap.set(p, id);
+          });
+          delete route.wrappers;
+        }
+        if (children) {
+          visitRoutes(children);
         }
       });
     }
-    visitFileRoutes(fileRoutes);
+    visitRoutes(routes);
     routeComponents.push("}");
     return {
-      routes: JSON.stringify(fileRoutes),
+      routes: JSON.stringify(routes),
       routeComponents: routeComponents.join("\n"),
+      imports: imports.join("\n"),
     };
   }
 
   async transformContent(content: string) {
-    const useTypeScript = fs.existsSync(this.paths.appTsConfig);
-    return useTypeScript
+    return this.useTypeScript
       ? content
       : ((await babelTsToJs(content))?.code as string);
   }
-
   async writeTmpFiles() {
     await Promise.all([
-      writeTplFile({
-        outputPath: this.getTmpOutputPath("core/history"),
-        tplPath: this.getTplInputPath("history.tpl"),
-        transform: this.transformContent.bind(this),
-      }),
-      writeTplFile({
-        outputPath: this.getTmpOutputPath("core/exports"),
-        tplPath: this.getTplInputPath("exports.tpl"),
-        transform: this.transformContent.bind(this),
-      }),
+      (async () => {
+        await writeTplFile({
+          outputPath: this.getTmpOutputPath("core/exports"),
+          tplPath: this.getTplInputPath("exports.tpl"),
+          transform: this.transformContent.bind(this),
+          context: {
+            appExports: mapExports(await this.hooks.appExports.call()).join(
+              "\n"
+            ),
+          },
+        });
+      })(),
       (async () => {
         const appRuntimePluginPath = fs.existsSync(
           this.paths.appRuntimePluginPath
@@ -166,13 +194,14 @@ export class App extends AppCore {
           entryHeaderCodes,
           entryFooterCodes,
         ] = await Promise.all([
-          this.hooks.runtimePluginPaths.call(
-            [appRuntimePluginPath].filter(Boolean)
-          ),
-          this.hooks.entryImports.call([]),
-          this.hooks.entryHeaderCodes.call([]),
-          this.hooks.entryFooterCodes.call([]),
+          this.hooks.runtimePluginPaths.call(),
+          this.hooks.entryImports.call(),
+          this.hooks.entryHeaderCodes.call(),
+          this.hooks.entryFooterCodes.call(),
         ]);
+        if (appRuntimePluginPath) {
+          runtimePluginPaths.push(appRuntimePluginPath);
+        }
         await writeTplFile({
           outputPath: this.getTmpOutputPath("zfast"),
           tplPath: this.getTplInputPath("zfast.tpl"),
@@ -186,14 +215,14 @@ export class App extends AppCore {
               index,
               path,
             })),
-            entryImports: imports2Str(entryImports),
-            entryFooterCodes: codes2Str(entryFooterCodes),
-            entryHeaderCodes: codes2Str(entryHeaderCodes),
+            entryImports: mapImports(entryImports).join("\n"),
+            entryFooterCodes: mapCodes(entryFooterCodes).join("\n"),
+            entryHeaderCodes: mapCodes(entryHeaderCodes).join("\n"),
           },
         });
       })(),
       (async () => {
-        const { routes, routeComponents } = await this.getFileRoutes();
+        const { routes, routeComponents, imports } = await this.getFileRoutes();
         await writeTplFile({
           outputPath: this.getTmpOutputPath("core/routes"),
           tplPath: this.getTplInputPath("routes.tpl"),
@@ -201,6 +230,7 @@ export class App extends AppCore {
           context: {
             routes,
             routeComponents,
+            imports,
           },
         });
       })(),

@@ -44,11 +44,14 @@ export class App {
   opts: AppOpts;
   userConfig: Record<string, any>;
   defaultConfig: Record<string, any> = {};
-  config: Record<string, any> = {};
+  config: {
+    [key: string]: any;
+  } = {};
   paths: IPaths;
   pkg: Record<string, any>;
   logger: ReturnType<typeof createLogger>;
   hooks: IHooks;
+  useTypeScript: boolean;
   constructor(opts: AppOpts) {
     this.name = opts.name;
     this.cwd = opts.cwd;
@@ -56,6 +59,7 @@ export class App {
     process.env.NODE_ENV = this.env;
     this.opts = opts;
     loadEnv({
+      cwd: this.cwd,
       envFile: ".env",
       env: this.env,
       suffix: ["local"],
@@ -64,6 +68,7 @@ export class App {
     this.logger = createLogger({ tag: this.opts.command });
     this.pkg = require(this.paths.appPackageJson);
     this.userConfig = this.getUserConfig();
+    this.useTypeScript = fs.existsSync(this.paths.appTsConfig);
     this.hooks = {
       config: new AsyncSeriesWaterfallHook(),
       paths: new AsyncSeriesWaterfallHook(),
@@ -102,7 +107,7 @@ export class App {
         "node_modules/.cache/tsconfig.tsbuildinfo"
       ),
       appPublic: resolveApp("public"),
-      appTemp: resolveApp(`src/.${this.name}`),
+      appTemp: resolveApp(`.${this.name}`),
     };
   }
 
@@ -114,9 +119,6 @@ export class App {
       this.userConfig.plugins || []
     );
     await this.initPlugins(plugins);
-    if (this.config.hooks) {
-      await this.config.hooks(this.hooks);
-    }
     this.paths = await this.hooks.paths.call(this.paths);
     this.config = merge(
       {},

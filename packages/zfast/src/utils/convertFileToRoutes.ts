@@ -1,16 +1,10 @@
 import { lstat, exists, readdir, Stats } from "fs-extra";
 import { resolve, relative } from "path";
 import { normalizePath } from "@zfast/utils";
+import { IRoute } from "../types";
 
 const DEFAULT_EXTENSIONS = [".tsx", ".ts", ".js", ".jsx"];
 
-interface IRoute {
-  id: string;
-  file: string;
-  path: string;
-  isDir?: boolean;
-  children?: IRoute[];
-}
 interface IOpts {
   baseDir: string;
   prefix?: string;
@@ -31,27 +25,19 @@ async function convertFileToRoutes(opts: IOpts) {
   } = opts;
   const routesIdMap = new Map<string, IRoute>();
   function setRoute(
-    {
-      id,
-      file,
-      isDir,
-      children,
-    }: {
-      id: string;
-      file: string;
-      isDir?: boolean;
-      children?: IRoute[];
-    },
+    routeMeta: Omit<IRoute, "path"> & { id: string },
     routes: IRoute[]
   ) {
+    const { id, component, children } = routeMeta;
     const path = createPath(id, prefix);
-    let route = {
-      id,
-      file,
+    let route: IRoute = {
       path,
     };
-    if (isDir) {
-      Object.assign(route, { isDir, children });
+    if (children) {
+      route.children = children;
+    }
+    if (component) {
+      route.component = component;
     }
     if (transformRoute) {
       route = transformRoute(route);
@@ -75,8 +61,6 @@ async function convertFileToRoutes(opts: IOpts) {
           setRoute(
             {
               id,
-              file,
-              isDir: true,
               children,
             },
             routes
@@ -87,7 +71,7 @@ async function convertFileToRoutes(opts: IOpts) {
             const id = createId(
               relativeId.slice(0, relativeId.length - ext.length)
             );
-            setRoute({ id, file }, routes);
+            setRoute({ id, component: file }, routes);
           }
         }
       }

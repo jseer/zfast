@@ -1,13 +1,14 @@
 import fs from "fs";
+import path from "path";
 
 interface EnvOpts {
   envFile: string;
   env?: string;
   suffix?: string[];
+  cwd?: string;
 }
 export default function loadEnv(opts: EnvOpts) {
-  const { envFile, env, suffix } = opts;
-  const dotenvFiles = getDotEnvFiles(envFile, env, suffix);
+  const dotenvFiles = getDotEnvFiles(opts);
   dotenvFiles.forEach((file) => {
     if (fs.existsSync(file!)) {
       require("dotenv-expand")(
@@ -19,12 +20,9 @@ export default function loadEnv(opts: EnvOpts) {
   });
 }
 
-export function getDotEnvFiles(
-  envFile: EnvOpts["envFile"],
-  env: EnvOpts["env"],
-  suffix: EnvOpts["suffix"]
-) {
-  const dotenvFiles = [envFile, env && `${envFile}.${env}`].filter(Boolean);
+export function getDotEnvFiles(opts: EnvOpts) {
+  const { envFile, env, suffix, cwd } = opts;
+  let dotenvFiles = [envFile, env && `${envFile}.${env}`].filter(Boolean);
   if (suffix) {
     let i = -1,
       j = -1,
@@ -36,6 +34,9 @@ export function getDotEnvFiles(
         dotenvFiles.push(`${file}.${suffix[j]}`);
       }
     }
+  }
+  if (cwd) {
+    dotenvFiles = dotenvFiles.map((file) => path.join(cwd, file!));
   }
   return dotenvFiles.reverse();
 }

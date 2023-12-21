@@ -1,10 +1,9 @@
 import { dev } from "@zfast/webpack";
-import {App} from "./app";
+import { App } from "./app";
 import getCwd from "./utils/getCwd";
 import { BaseOpts } from "./types";
 import clearConsole from "react-dev-utils/clearConsole";
 import openBrowser from "react-dev-utils/openBrowser";
-import chainWebpack from "./hooks/chainWebpack";
 
 const isInteractive = process.stdout.isTTY;
 
@@ -17,9 +16,6 @@ export default async function (opts: DevOpts) {
     configFile: opts.configFile,
     env: "development",
     command: "dev",
-    plugins: [
-      chainWebpack,
-    ]
   });
   await app.init();
   const { logger, config, paths, hooks } = app;
@@ -34,7 +30,7 @@ export default async function (opts: DevOpts) {
     fastRefresh: config.fastRefresh,
     hooks: {
       chainWebpack: hooks.chainWebpack,
-    }
+    },
   });
   devServer.startCallback(() => {
     if (isInteractive) {

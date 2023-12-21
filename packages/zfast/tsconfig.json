@@ -4,5 +4,6 @@
     "jsx": "react",
     "outDir": "./dist",
     "rootDir": "./src"
-  }
+  },
+  "include": ["src"]
 }

@@ -1,20 +1,21 @@
-import { AsyncSeriesWaterfallHook } from "kooh";
-import { IPluginContainerHooks } from "../render/type";
+import { AsyncSeriesHook, AsyncSeriesWaterfallHook } from "kooh";
+import { IPluginContainerHooks } from "../types";
 
 interface IPluginContainerOpts {
   plugins: Function[];
 }
 
-class PluginContainer {
+export class PluginContainer {
   hooks: IPluginContainerHooks;
   plugins: Readonly<IPluginContainerOpts["plugins"]>;
   constructor(opts: IPluginContainerOpts) {
     this.plugins = Object.freeze(opts.plugins);
     this.hooks = {
-      routes: new AsyncSeriesWaterfallHook(),
-      routesWithComponents: new AsyncSeriesWaterfallHook(),
+      routes: new AsyncSeriesHook(),
+      routesWithComponents: new AsyncSeriesHook(),
       container: new AsyncSeriesWaterfallHook(),
       loadingComponent: new AsyncSeriesWaterfallHook(),
+      enhancedRender: new AsyncSeriesWaterfallHook(),
     };
   }
 
@@ -26,5 +27,3 @@ class PluginContainer {
     );
   }
 }
-
-export default PluginContainer;

@@ -28,11 +28,10 @@ const createEnvironmentHash = (env: Record<string, string>) => {
 };
 
 export async function getConfig(opts: ConfigOpts) {
-  const { paths, hooks } = opts;
+  const { paths, hooks, useTypeScript } = opts;
   const config = new Config();
   const isEnvDevelopment = opts.env === Env.development;
   const isEnvProduction = opts.env === Env.production;
-  const useTypeScript = fs.existsSync(paths.appTsConfig);
   const env = getClientEnvironment(opts.publicPath.slice(0, -1));
   const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== "false";
 

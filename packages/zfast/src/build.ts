@@ -3,14 +3,12 @@ import { App } from "./app";
 import getCwd from "./utils/getCwd";
 import fs from "fs-extra";
 import {
-  DEFAULT_CONFIG_FILES,
   WARN_AFTER_BUNDLE_GZIP_SIZE,
   WARN_AFTER_CHUNK_GZIP_SIZE,
 } from "./constants";
 import FileSizeReporter from "react-dev-utils/FileSizeReporter";
 import printBuildError from "react-dev-utils/printBuildError";
 import { BaseOpts } from "./types";
-import chainWebpack from "./hooks/chainWebpack";
 
 const printFileSizesAfterBuild = FileSizeReporter.printFileSizesAfterBuild;
 
@@ -22,7 +20,6 @@ export default async function (opts: BuildOpts) {
     configFile: opts.configFile,
     env: "production",
     command: "build",
-    plugins: [chainWebpack],
   });
   await app.init();
 
@@ -37,7 +34,6 @@ export default async function (opts: BuildOpts) {
       pkg: app.pkg,
       logger,
       publicPath: config.publicPath,
-      watch: config.watch,
       hooks: {
         chainWebpack: hooks.chainWebpack,
       },

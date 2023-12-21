@@ -1,13 +1,12 @@
 import crypto from "crypto";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import InlineChunkHtmlPlugin from "react-dev-utils/InlineChunkHtmlPlugin";
-import path, { dirname } from "path";
+import path, { dirname, join } from "path";
 import { IPlugin } from "@zfast/core";
 import { App } from "../app";
 
-const hook: IPlugin<App> = ({ hooks, paths }) => {
+const plugin: IPlugin<App> = ({ hooks, paths }) => {
   hooks.chainWebpack.add(async (config, { env }) => {
-    // html
     const isEnvProduction = env === "production";
     config.plugin("html-webpack-plugin").use(HtmlWebpackPlugin, [
       Object.assign(
@@ -41,9 +40,8 @@ const hook: IPlugin<App> = ({ hooks, paths }) => {
         [/runtime-.+[.]js/],
       ] as any);
 
-    // alias
     config.resolve.alias.merge({
-      zfast: "@@/exports",
+      zfast: "@@/core/exports",
       "@": paths.appSrc,
       "@@": paths.appTemp,
       react: dirname(require.resolve("react/package.json")),
@@ -56,7 +54,6 @@ const hook: IPlugin<App> = ({ hooks, paths }) => {
       ),
     });
 
-    // codeSplitting
     const FRAMEWORK_BUNDLES = [
       "react-dom",
       "react",
@@ -102,6 +99,12 @@ const hook: IPlugin<App> = ({ hooks, paths }) => {
     //   },
     // });
   });
+
+  hooks.appExports.add(async () => {
+    return {
+      source: path.join(__dirname, "../client"),
+    };
+  });
 };
 
-export default hook;
+export default plugin;

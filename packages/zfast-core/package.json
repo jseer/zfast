@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@zfast/utils": "workspace:^",
-    "kooh": "^1.1.3",
+    "kooh": "^1.1.4",
     "lodash": "^4.17.21"
   }
 }

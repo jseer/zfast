@@ -5,9 +5,6 @@ import { App } from "@zfast/core";
 import type { AsyncSeriesHook } from "kooh";
 
 export interface BaseOpts {
-  // chainWebpack?: {
-  //   (memo: Config, opts: { env: Env; webpack: typeof webpack }): void;
-  // };
   cwd: string;
   entry: Record<string, string | string[]>;
   hasJsxRuntime?: boolean;
@@ -20,6 +17,7 @@ export interface BaseOpts {
       [Config, { env: Env; webpack: typeof webpack }]
     >;
   };
+  useTypeScript?: boolean;
 }
 
 export interface BuildOpts extends BaseOpts {
