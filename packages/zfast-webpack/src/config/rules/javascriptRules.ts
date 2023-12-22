@@ -12,6 +12,7 @@ export default function addJavascriptRules(
     hasJsxRuntime,
     env,
     fastRefresh,
+    useTypeScript,
   } = opts;
 
   allRule
@@ -24,18 +25,61 @@ export default function addJavascriptRules(
     .use("babel-loader")
     .loader(require.resolve("babel-loader"))
     .options({
-      customize: require.resolve("babel-preset-react-app/webpack-overrides"),
       presets: [
-        [
-          require.resolve("babel-preset-react-app"),
+        (isEnvProduction || isEnvDevelopment) && [
+          require.resolve("@babel/preset-env"),
           {
+            useBuiltIns: "entry",
+            corejs: 3,
+            exclude: ["transform-typeof-symbol"],
+          },
+        ],
+        [
+          require.resolve("@babel/preset-react"),
+          {
+            development: isEnvDevelopment,
+            ...(hasJsxRuntime ? {} : { useBuiltIns: true }),
             runtime: hasJsxRuntime ? "automatic" : "classic",
           },
         ],
-      ],
-      plugins: [fastRefresh && require.resolve("react-refresh/babel")].filter(
-        Boolean
-      ),
+        require.resolve("@babel/preset-typescript"),
+      ].filter(Boolean),
+      plugins: [
+        useTypeScript && [
+          require.resolve("@babel/plugin-proposal-decorators"),
+          false,
+        ],
+        [
+          require("@babel/plugin-transform-class-properties").default,
+          {
+            loose: true,
+          },
+        ],
+        [
+          require("@babel/plugin-transform-private-methods").default,
+          {
+            loose: true,
+          },
+        ],
+        [
+          require("@babel/plugin-transform-private-property-in-object").default,
+          {
+            loose: true,
+          },
+        ],
+        fastRefresh && require.resolve("react-refresh/babel"),
+      ].filter(Boolean),
+      overrides: [
+        useTypeScript && {
+          test: /\.tsx?$/,
+          plugins: [
+            [
+              require.resolve("@babel/plugin-proposal-decorators"),
+              { legacy: true },
+            ],
+          ],
+        },
+      ].filter(Boolean),
       cacheDirectory: true,
       cacheCompression: false,
       compact: isEnvProduction,

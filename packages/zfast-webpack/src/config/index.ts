@@ -19,6 +19,7 @@ export interface ApplyOpts {
   cwd: ConfigOpts["cwd"];
   publicPath: ConfigOpts["publicPath"];
   fastRefresh: ConfigOpts["fastRefresh"];
+  useTypeScript?: boolean;
 }
 
 const createEnvironmentHash = (env: Record<string, string>) => {
@@ -137,6 +138,7 @@ export async function getConfig(opts: ConfigOpts) {
     hasJsxRuntime: opts.hasJsxRuntime,
     publicPath: opts.publicPath,
     fastRefresh: opts.fastRefresh,
+    useTypeScript,
   };
   addRules(config, applyOpts);
   // react-refresh

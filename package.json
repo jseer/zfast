@@ -26,7 +26,7 @@
     "@zfast/core": "workspace:^",
     "esno": "^4.0.0",
     "father": "^4.3.7",
-    "kooh": "^1.1.4",
+    "kooh": "^1.1.5",
     "tapable": "^2.2.1",
     "typescript": "^5.3.2",
     "webpack-chain": "^6.5.1"
