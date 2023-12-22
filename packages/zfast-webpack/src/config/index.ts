@@ -103,7 +103,7 @@ export async function getConfig(opts: ConfigOpts) {
   config.set("infrastructureLogging", {
     level: "error", // todo
   });
-
+  
   config.resolve.modules
     .add("node_modules")
     .end()

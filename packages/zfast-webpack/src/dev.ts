@@ -49,6 +49,7 @@ export async function dev(opts: DevOpts): Promise<{
     logger,
     publicPath,
     fastRefresh,
+    useTypeScript,
   });
   // let compiler: webpack.Compiler;
   // try {

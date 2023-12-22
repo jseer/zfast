@@ -18,7 +18,7 @@ export default async function (opts: DevOpts) {
     command: "dev",
   });
   await app.init();
-  const { logger, config, paths, hooks } = app;
+  const { logger, config, paths, hooks, useTypeScript } = app;
   const { devServer, urls } = await dev({
     cwd: app.cwd,
     hasJsxRuntime: app.hasJsxRuntime,
@@ -31,6 +31,7 @@ export default async function (opts: DevOpts) {
     hooks: {
       chainWebpack: hooks.chainWebpack,
     },
+    useTypeScript,
   });
   devServer.startCallback(() => {
     if (isInteractive) {

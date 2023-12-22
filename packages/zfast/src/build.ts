@@ -23,7 +23,7 @@ export default async function (opts: BuildOpts) {
   });
   await app.init();
 
-  const { paths, config, logger, hooks } = app;
+  const { paths, config, logger, hooks, useTypeScript } = app;
   try {
     await fs.remove(paths.appBuild);
     const { stats, previousFileSizes, warnings } = await build({
@@ -37,6 +37,7 @@ export default async function (opts: BuildOpts) {
       hooks: {
         chainWebpack: hooks.chainWebpack,
       },
+      useTypeScript,
     });
     if (warnings.length) {
       logger.warn("Compiled with warnings.\n");

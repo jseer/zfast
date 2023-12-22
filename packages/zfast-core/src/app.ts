@@ -107,7 +107,7 @@ export class App {
         "node_modules/.cache/tsconfig.tsbuildinfo"
       ),
       appPublic: resolveApp("public"),
-      appTemp: resolveApp(`.${this.name}`),
+      appTemp: resolveApp(`src/.${this.name}`),
     };
   }
 
