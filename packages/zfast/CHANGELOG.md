@@ -1,5 +1,15 @@
 # zfast
 
+## 1.0.7
+
+### Patch Changes
+
+- release
+- Updated dependencies
+  - @zfast/core@1.0.6
+  - @zfast/utils@1.0.6
+  - @zfast/webpack@1.0.6
+
 ## 1.0.6
 
 ### Patch Changes

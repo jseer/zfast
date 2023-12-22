@@ -1,5 +1,13 @@
 # @zfast/webpack
 
+## 1.0.6
+
+### Patch Changes
+
+- release
+- Updated dependencies
+  - @zfast/utils@1.0.6
+
 ## 1.0.5
 
 ### Patch Changes
