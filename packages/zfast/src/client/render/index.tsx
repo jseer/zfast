@@ -71,9 +71,12 @@ async function render(opts: IRenderOpts) {
     );
   }
 
-  const container = await pluginContainer.hooks.container.call(<App />);
+  const [container, rootId] = await Promise.all([
+    pluginContainer.hooks.container.call(<App />),
+    pluginContainer.hooks.rootId.call(),
+  ]);
   const root = ReactDOM.createRoot(
-    document.getElementById("root") as HTMLElement
+    document.getElementById(rootId || "root") as HTMLElement
   );
   const enhancedRender = await pluginContainer.hooks.enhancedRender.call(
     async () =>

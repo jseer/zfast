@@ -1,4 +1,4 @@
-import { AsyncSeriesHook, AsyncSeriesWaterfallHook, Hook } from "kooh";
+import { AsyncSeriesBailHook, AsyncSeriesHook, AsyncSeriesWaterfallHook } from "kooh";
 import { RouteObject } from "react-router-dom";
 import { IRoute } from "../types";
 
@@ -19,5 +19,5 @@ export interface IPluginContainerHooks {
   container: AsyncSeriesWaterfallHook<React.ReactNode>;
   loadingComponent: AsyncSeriesWaterfallHook<React.ReactNode>;
   enhancedRender: AsyncSeriesWaterfallHook<() => Promise<void>>;
-  [key: string]: Hook<Function>;
+  rootId: AsyncSeriesBailHook<[], string>;
 }

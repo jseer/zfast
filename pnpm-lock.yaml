@@ -102,8 +102,8 @@ importers:
         specifier: ^5.5.3
         version: 5.5.4(webpack@5.89.0)
       kooh:
-        specifier: ^1.1.4
-        version: 1.1.4
+        specifier: ^1.1.5
+        version: 1.1.5
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -126,8 +126,8 @@ importers:
         specifier: workspace:^
         version: link:../zfast-utils
       kooh:
-        specifier: ^1.1.4
-        version: 1.1.4
+        specifier: ^1.1.5
+        version: 1.1.5
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -7699,6 +7699,11 @@ packages:
 
   /kooh@1.1.4:
     resolution: {integrity: sha512-l2Kaf4U12EpgLFCs6kYkWJ1Trfa2AuLgXqf3ikjD09OM/qMgWCzGcfq6w0LS8mWPZl4hECmkhwjRjrKYHsenvQ==}
+    dev: true
+
+  /kooh@1.1.5:
+    resolution: {integrity: sha512-f0Vfd50EaJ7tk3j6NX9N2hEIObACH79SxGc8kQJfyob8Q0U0Lsb6uHMn6yAUIoMIQ2JvMrFiWaSdd/yBKVBIDQ==}
+    dev: false
 
   /launch-editor@2.6.1:
     resolution: {integrity: sha512-eB/uXmFVpY4zezmGp5XtU21kwo7GBbKB+EQ+UZeWtGb9yAM5xt/Evk+lYH3eRNAtId+ej4u7TYPFZ07w4s7rRw==}

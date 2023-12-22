@@ -34,7 +34,7 @@ export interface IPaths {
 export interface IHooks {
   config: AsyncSeriesWaterfallHook<[Record<string, any>]>;
   paths: AsyncSeriesWaterfallHook<[IPaths]>;
-  [key: string]: Hook<Function>;
+  [key: string]: Hook;
 }
 
 export class App {
