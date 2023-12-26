@@ -129,7 +129,8 @@ export class App extends AppCore {
               component
             )}")),`
           );
-          (route as IRouteWithId).id = id;
+          (route as IRouteWithId).element = id;
+          delete route.component;
         }
         if (wrappers) {
           const wrapperIds: number[] = [];

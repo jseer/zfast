@@ -1,37 +1,39 @@
-import { AsyncSeriesBailHook, AsyncSeriesHook, AsyncSeriesWaterfallHook, Hook } from "kooh";
+import {
+  AsyncSeriesBailHook,
+  AsyncSeriesHook,
+  AsyncSeriesWaterfallHook,
+  Hook,
+} from "kooh";
 import { IPluginContainerHooks } from "../types";
 
 interface IPluginContainerOpts {
   plugins: Function[];
 }
 
-export interface IClientPluginContext<
-  H extends { [key: string]: Hook } = {}
-> {
+export interface IClientPluginContext<H extends { [key: string]: Hook } = {}> {
   hooks: PluginContainer["hooks"] & H;
   registerHooks: PluginContainer["registerHooks"];
   registerHook: PluginContainer["registerHook"];
 }
 export class PluginContainer {
   hooks: IPluginContainerHooks;
+  private _hooks: IPluginContainerHooks;
   plugins: Readonly<IPluginContainerOpts["plugins"]>;
   constructor(opts: IPluginContainerOpts) {
     this.plugins = Object.freeze(opts.plugins);
-    this.hooks = new Proxy<PluginContainer["hooks"]>(
-      {
-        routes: new AsyncSeriesHook(),
-        routesWithComponents: new AsyncSeriesHook(),
-        container: new AsyncSeriesWaterfallHook(),
-        loadingComponent: new AsyncSeriesWaterfallHook(),
-        enhancedRender: new AsyncSeriesWaterfallHook(),
-        rootId: new AsyncSeriesBailHook(),
+    this._hooks = {
+      routes: new AsyncSeriesHook(),
+      routesWithComponents: new AsyncSeriesHook(),
+      container: new AsyncSeriesWaterfallHook(),
+      loadingComponent: new AsyncSeriesWaterfallHook(),
+      enhancedRender: new AsyncSeriesWaterfallHook(),
+      rootId: new AsyncSeriesBailHook(),
+    };
+    this.hooks = new Proxy<PluginContainer["hooks"]>(this._hooks, {
+      set() {
+        throw new Error("must be use registerHook api");
       },
-      {
-        set() {
-          throw new Error("must be use registerHook api");
-        },
-      }
-    );
+    });
   }
 
   async run() {
@@ -52,7 +54,7 @@ export class PluginContainer {
     if (this.hooks.hasOwnProperty(name)) {
       throw new Error(`${name} hook already exists`);
     }
-    Object.assign(this.hooks, { [name]: hook });
+    Object.assign(this._hooks, { [name]: hook });
   }
 
   static createContext(container: PluginContainer): IClientPluginContext {

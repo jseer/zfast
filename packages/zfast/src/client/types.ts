@@ -5,7 +5,7 @@ import { IRoute } from "../types";
 export type RouteComponentsById = Record<string, any>;
 
 export interface IRouteWithId extends Omit<IRoute, "children" | "wrappers"> {
-  id?: number;
+  element?: number;
   children?: IRouteWithId[];
   wrapperIds?: number[];
 }

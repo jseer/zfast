@@ -33,8 +33,8 @@ async function render(opts: IRenderOpts) {
         path: item.path,
       };
       let element;
-      if (item.id) {
-        element = routeComponents[item.id];
+      if (typeof item.element === 'number') {
+        element = React.createElement(routeComponents[item.element], null, null);
       }
       if (item.wrapperIds) {
         let i = item.wrapperIds.length;

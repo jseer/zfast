@@ -52,6 +52,7 @@ export class App {
   logger: ReturnType<typeof createLogger>;
   hooks: IHooks;
   useTypeScript: boolean;
+  private _hooks: IHooks;
   constructor(opts: AppOpts) {
     this.name = opts.name;
     this.cwd = opts.cwd;
@@ -69,10 +70,15 @@ export class App {
     this.pkg = require(this.paths.appPackageJson);
     this.userConfig = this.getUserConfig();
     this.useTypeScript = fs.existsSync(this.paths.appTsConfig);
-    this.hooks = {
+    this._hooks = {
       config: new AsyncSeriesWaterfallHook(),
       paths: new AsyncSeriesWaterfallHook(),
     };
+    this.hooks = new Proxy<IHooks>(this._hooks, {
+      set() {
+        throw new Error("must be use registerHook api");
+      },
+    });
   }
 
   getUserConfig() {
@@ -132,10 +138,23 @@ export class App {
     while (++i < plugins.length) {
       const pluginInfo = await normalizePlugin<any>(plugins[i], this.cwd);
       const context = Plugin.createContext<any>(this, pluginInfo);
-      const ret = await pluginInfo.plugin(context);
+      const ret = await pluginInfo.plugin(context, pluginInfo.opts);
       if (ret?.plugins) {
         await this.initPlugins(ret.plugins);
       }
     }
+  }
+
+  registerHooks<H extends { [key: string]: Hook }>(hooks: H) {
+    for (const name in hooks) {
+      this.registerHook(name, hooks[name]);
+    }
+  }
+
+  registerHook<H extends Hook>(name: string, hook: H) {
+    if (this.hooks.hasOwnProperty(name)) {
+      throw new Error(`${name} hook already exists`);
+    }
+    Object.assign(this._hooks, { [name]: hook });
   }
 }

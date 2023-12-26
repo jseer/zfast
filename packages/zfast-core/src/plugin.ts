@@ -3,15 +3,22 @@ import { resolveAsync, loadConfigFromFile } from "@zfast/utils";
 import { App } from "./app";
 import assert from "assert";
 
-export interface IPlugin<T extends App> {
-  (context: IPluginContext<T>): void | { plugins: IPlugin<T>[] };
+interface IPluginFn<T extends App, O extends Record<string, any> = {}> {
+  (context: IPluginContext<T>, opts?: O): void | {
+    plugins: IPlugin<T>[];
+  };
 }
+export type IPlugin<T extends App, O extends Record<string, any> = {}> =
+  | string
+  | IPluginFn<T, O>
+  | [IPluginFn<T, O>, O];
 interface IPluginInfo<T extends App> {
-  plugin: IPlugin<T>;
+  plugin: IPluginFn<T>;
   path?: string;
+  opts?: Record<string, any>;
 }
 export async function normalizePlugin<T extends App>(
-  plugin: string | IPlugin<T>,
+  plugin: IPlugin<T>,
   cwd: string
 ): Promise<IPluginInfo<T>> {
   if (typeof plugin === "string") {
@@ -37,6 +44,13 @@ export async function normalizePlugin<T extends App>(
     return { plugin: ret, path: resolved as string };
   } else if (typeof plugin === "function") {
     return { plugin };
+  } else if (Array.isArray(plugin)) {
+    const res = await normalizePlugin(plugin[0], cwd);
+    return {
+      plugin: res.plugin,
+      opts: plugin[1],
+      path: res.path,
+    };
   }
   throw new Error(`The plugin type(${typeof plugin}) is not supported`);
 }
