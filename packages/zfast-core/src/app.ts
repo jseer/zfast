@@ -32,8 +32,8 @@ export interface IPaths {
   [key: string]: string;
 }
 export interface IHooks {
-  config: AsyncSeriesWaterfallHook<[Record<string, any>]>;
-  paths: AsyncSeriesWaterfallHook<[IPaths]>;
+  config: AsyncSeriesWaterfallHook<Record<string, any>>;
+  paths: AsyncSeriesWaterfallHook<IPaths>;
   [key: string]: Hook;
 }
 
@@ -52,12 +52,13 @@ export class App {
   logger: ReturnType<typeof createLogger>;
   hooks: IHooks;
   useTypeScript: boolean;
-  private _hooks: IHooks;
   constructor(opts: AppOpts) {
     this.name = opts.name;
     this.cwd = opts.cwd;
     this.env = opts.env;
-    process.env.NODE_ENV = this.env;
+    if (this.env) {
+      process.env.NODE_ENV = this.env;
+    }
     this.opts = opts;
     loadEnv({
       cwd: this.cwd,
@@ -70,15 +71,10 @@ export class App {
     this.pkg = require(this.paths.appPackageJson);
     this.userConfig = this.getUserConfig();
     this.useTypeScript = fs.existsSync(this.paths.appTsConfig);
-    this._hooks = {
+    this.hooks = {
       config: new AsyncSeriesWaterfallHook(),
       paths: new AsyncSeriesWaterfallHook(),
     };
-    this.hooks = new Proxy<IHooks>(this._hooks, {
-      set() {
-        throw new Error("must be use registerHook api");
-      },
-    });
   }
 
   getUserConfig() {
@@ -137,24 +133,11 @@ export class App {
     let i = -1;
     while (++i < plugins.length) {
       const pluginInfo = await normalizePlugin<any>(plugins[i], this.cwd);
-      const context = Plugin.createContext<any>(this, pluginInfo);
-      const ret = await pluginInfo.plugin(context, pluginInfo.opts);
+      const plugin = new Plugin(this, pluginInfo);
+      const ret = await plugin.apply();
       if (ret?.plugins) {
         await this.initPlugins(ret.plugins);
       }
     }
-  }
-
-  registerHooks<H extends { [key: string]: Hook }>(hooks: H) {
-    for (const name in hooks) {
-      this.registerHook(name, hooks[name]);
-    }
-  }
-
-  registerHook<H extends Hook>(name: string, hook: H) {
-    if (this.hooks.hasOwnProperty(name)) {
-      throw new Error(`${name} hook already exists`);
-    }
-    Object.assign(this._hooks, { [name]: hook });
   }
 }

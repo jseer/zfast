@@ -2,8 +2,9 @@ import { isAbsolute } from "path";
 import { resolveAsync, loadConfigFromFile } from "@zfast/utils";
 import { App } from "./app";
 import assert from "assert";
+import { Hook } from "kooh";
 
-interface IPluginFn<T extends App, O extends Record<string, any> = {}> {
+export interface IPluginFn<T extends App, O extends Record<string, any> = {}> {
   (context: IPluginContext<T>, opts?: O): void | {
     plugins: IPlugin<T>[];
   };
@@ -62,34 +63,56 @@ export interface IPluginContext<T extends App> {
   cwd: T["cwd"];
   env: T["env"];
   pkg: T["pkg"];
+  registerHook: Plugin["registerHook"];
+  registerHooks: Plugin["registerHooks"];
 }
 
+const PLUGIN_INFO = Symbol("#PLUGIN_INFO");
 export class Plugin {
   app: App;
-  constructor(app: App) {
+  path?: IPluginInfo<App>["path"];
+  plugin: IPluginInfo<App>["plugin"];
+  opts?: IPluginInfo<App>["opts"];
+  constructor(app: App, pluginInfo: IPluginInfo<App>) {
     this.app = app;
+    this.path = pluginInfo.path;
+    this.plugin = pluginInfo.plugin;
+    this.opts = pluginInfo.opts;
   }
-  static createContext<T extends App>(
-    app: T,
-    pluginInfo: IPluginInfo<T>
-  ): IPluginContext<T> {
-    const plugin = new Plugin(app);
-    const hooks: any = {};
-    for (let key in app.hooks) {
-      // @ts-ignore
-      hooks[key] = app.hooks[key].withOptions({
-        pluginInfo: {
-          path: pluginInfo.path,
-        },
-      });
+
+  apply() {
+    return this.plugin(this.createContext(), this.opts);
+  }
+
+  registerHooks<H extends { [key: string]: Hook }>(hooks: H) {
+    for (const name in hooks) {
+      this.registerHook(name, hooks[name]);
     }
+  }
+
+  registerHook<H extends Hook>(name: string, hook: H) {
+    if (this.app.hooks.hasOwnProperty(name)) {
+      throw new Error(`${name} hook already exists`);
+    }
+    Object.assign(this.app.hooks, { [name]: hook });
+  }
+
+  createContext(): IPluginContext<App> {
+    const app = this.app;
     return {
-      hooks,
+      // todo:
+      hooks: new Proxy<App["hooks"]>(app.hooks, {
+        set() {
+          throw new Error("must be use registerHook api");
+        },
+      }),
       paths: app.paths,
       logger: app.logger,
       cwd: app.cwd,
       env: app.env,
       pkg: app.pkg,
+      registerHook: this.registerHook.bind(this),
+      registerHooks: this.registerHooks.bind(this),
     };
   }
 }

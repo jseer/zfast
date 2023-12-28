@@ -1,0 +1,31 @@
+{
+  "name": "@zfast/press",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "father dev",
+    "build": "father build --no-clean"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@zfast/utils": "workspace:^",
+    "@zfast/webpack": "workspace:^",
+    "highlight.js": "^11.9.0",
+    "markdown-it": "^14.0.0",
+    "markdown-it-anchor": "^8.6.7",
+    "markdown-it-container": "^4.0.0",
+    "markdown-it-emoji": "^3.0.0"
+  },
+  "devDependencies": {
+    "@zfast/core": "workspace:^",
+    "webpack": "^5.89.0",
+    "zfast": "workspace:^"
+  }
+}

@@ -7,8 +7,14 @@ import {
 } from "@zfast/core";
 import path, { isAbsolute, join } from "path";
 import { normalizePath, writeTplFile, babelTsToJs } from "@zfast/utils";
-import convertFileToRoutes from "./utils/convertFileToRoutes";
-import { AsyncSeriesHook, AsyncParallelConcatHook } from "kooh";
+import convertFileToRoutes, {
+  IOpts as ConvertFileToRoutesOpts,
+} from "./utils/convertFileToRoutes";
+import {
+  AsyncSeriesHook,
+  AsyncParallelConcatHook,
+  AsyncSeriesWaterfallHook,
+} from "kooh";
 import defaultConfig from "./utils/defaultConfig";
 import type Config from "webpack-chain";
 import { Env as WebpackEnv, webpack } from "@zfast/webpack";
@@ -32,6 +38,7 @@ export class App extends AppCore {
     entryFooterCodes: AsyncParallelConcatHook<[], ICodeItem>;
     entryHeaderCodes: AsyncParallelConcatHook<[], ICodeItem>;
     appExports: AsyncParallelConcatHook<[], IAppExports>;
+    convertFileToRoutesOpts: AsyncSeriesWaterfallHook<ConvertFileToRoutesOpts>;
   };
   config!: IConfig;
   constructor(props: Omit<AppCoreOpts, "name">) {
@@ -62,6 +69,7 @@ export class App extends AppCore {
       entryFooterCodes: new AsyncParallelConcatHook(),
       exportsCodes: new AsyncParallelConcatHook(),
       appExports: new AsyncParallelConcatHook(),
+      convertFileToRoutesOpts: new AsyncSeriesWaterfallHook(),
     };
   }
 
@@ -100,12 +108,13 @@ export class App extends AppCore {
     const pagesPath = this.paths.appPages;
     const routes = this.config.routes
       ? this.config.routes
-      : (
-          await convertFileToRoutes({
+      : await (async () => {
+          const opts = await this.hooks.convertFileToRoutesOpts.call({
             baseDir: pagesPath,
             allowEmptyRoutes: false,
-          })
-        ).routes;
+          });
+          return (await convertFileToRoutes(opts)).routes;
+        })();
     const routeComponents: string[] = ["{"];
     function createPath(component: string) {
       return normalizePath(

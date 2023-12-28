@@ -5,7 +5,7 @@ import assert from "assert";
 import createDebugger from "./createDebugger";
 
 export interface WriteFileOptions {
-  outputPath: string;
+  outputPath: string | false;
   content?: string;
   tpl?: string;
   tplPath?: string;
@@ -21,13 +21,9 @@ async function write(outputPath: string, content: string) {
 export default async function writeTplFile(options: WriteFileOptions) {
   let { outputPath, content, tpl, tplPath, context, transform } = options;
   debug("outputPath:%s tplPath:%s", outputPath, tplPath);
-  const savePath = path.isAbsolute(outputPath)
-    ? outputPath
-    : path.resolve(process.cwd(), outputPath);
   if (!content) {
     assert(
-      !tplPath ||
-        (fs.existsSync(tplPath) && (await fs.stat(tplPath)).isFile()),
+      !tplPath || (fs.existsSync(tplPath) && (await fs.stat(tplPath)).isFile()),
       `tplPath does not exists or is not a file.`
     );
     tpl = tplPath ? await fs.readFile(tplPath, "utf-8") : tpl;
@@ -37,6 +33,12 @@ export default async function writeTplFile(options: WriteFileOptions) {
   if (transform) {
     content = await transform(content);
   }
+  if (outputPath === false) {
+    return content;
+  }
+  const savePath = path.isAbsolute(outputPath)
+    ? outputPath
+    : path.resolve(process.cwd(), outputPath);
   if (!fs.existsSync(savePath)) {
     await write(savePath, content);
   } else {

@@ -5,7 +5,7 @@ import { IRoute } from "../types";
 
 const DEFAULT_EXTENSIONS = [".tsx", ".ts", ".js", ".jsx"];
 
-interface IOpts {
+export interface IOpts {
   baseDir: string;
   prefix?: string;
   extensions?: string[];
