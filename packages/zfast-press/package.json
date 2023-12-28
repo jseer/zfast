@@ -25,7 +25,9 @@
   },
   "devDependencies": {
     "@zfast/core": "workspace:^",
-    "webpack": "^5.89.0",
+    "webpack": "^5.89.0"
+  },
+  "optionalDependencies": {
     "zfast": "workspace:^"
   }
 }

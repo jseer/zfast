@@ -1,6 +1,6 @@
 import { isAbsolute, join } from "path";
 
-export default function getCwd(root?: string) {
+export function getCwd(root?: string) {
   const cwd = process.cwd();
   const appRoot = root || process.env.APP_ROOT;
   if (appRoot) {

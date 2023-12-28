@@ -95,9 +95,6 @@ importers:
       '@zfast/core':
         specifier: workspace:^
         version: link:../zfast-core
-      '@zfast/press':
-        specifier: workspace:^
-        version: link:../zfast-press
       '@zfast/utils':
         specifier: workspace:^
         version: link:../zfast-utils
@@ -167,6 +164,10 @@ importers:
       markdown-it-emoji:
         specifier: ^3.0.0
         version: 3.0.0
+    optionalDependencies:
+      zfast:
+        specifier: workspace:^
+        version: link:../zfast
     devDependencies:
       '@zfast/core':
         specifier: workspace:^
@@ -174,9 +175,6 @@ importers:
       webpack:
         specifier: ^5.89.0
         version: 5.89.0
-      zfast:
-        specifier: workspace:^
-        version: link:../zfast
 
   packages/zfast-utils:
     dependencies:

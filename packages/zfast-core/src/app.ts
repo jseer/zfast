@@ -37,10 +37,14 @@ export interface IHooks {
   [key: string]: Hook;
 }
 
+interface IAppData {
+  useTypeScript: boolean;
+  hasSrc: boolean;
+}
 export class App {
   name: string;
   cwd: string;
-  env: string;
+  env?: string;
   opts: AppOpts;
   userConfig: Record<string, any>;
   defaultConfig: Record<string, any> = {};
@@ -51,7 +55,7 @@ export class App {
   pkg: Record<string, any>;
   logger: ReturnType<typeof createLogger>;
   hooks: IHooks;
-  useTypeScript: boolean;
+  appData: IAppData;
   constructor(opts: AppOpts) {
     this.name = opts.name;
     this.cwd = opts.cwd;
@@ -70,10 +74,13 @@ export class App {
     this.logger = createLogger({ tag: this.opts.command });
     this.pkg = require(this.paths.appPackageJson);
     this.userConfig = this.getUserConfig();
-    this.useTypeScript = fs.existsSync(this.paths.appTsConfig);
     this.hooks = {
       config: new AsyncSeriesWaterfallHook(),
       paths: new AsyncSeriesWaterfallHook(),
+    };
+    this.appData = {
+      useTypeScript: fs.existsSync(this.paths.appTsConfig),
+      hasSrc: fs.existsSync(this.paths.appSrc),
     };
   }
 
@@ -113,7 +120,7 @@ export class App {
     };
   }
 
-  async init() {
+  async run() {
     if (fs.existsSync(this.paths.appTemp)) {
       fs.rmSync(this.paths.appTemp, { force: true, recursive: true });
     }

@@ -21,7 +21,6 @@
   "dependencies": {
     "@remix-run/router": "^1.13.1",
     "@zfast/core": "workspace:^",
-    "@zfast/press": "workspace:^",
     "@zfast/utils": "workspace:^",
     "@zfast/webpack": "workspace:^",
     "commander": "^11.1.0",

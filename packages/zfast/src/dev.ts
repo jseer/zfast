@@ -1,6 +1,6 @@
 import { dev } from "@zfast/webpack";
 import { App } from "./app";
-import getCwd from "./utils/getCwd";
+import { getCwd } from "@zfast/utils";
 import { BaseOpts } from "./types";
 import clearConsole from "react-dev-utils/clearConsole";
 import openBrowser from "react-dev-utils/openBrowser";
@@ -17,8 +17,8 @@ export default async function (opts: DevOpts) {
     env: "development",
     command: "dev",
   });
-  await app.init();
-  const { logger, config, paths, hooks, useTypeScript } = app;
+  await app.run();
+  const { logger, config, paths, hooks, appData: { useTypeScript } } = app;
   const { devServer, urls } = await dev({
     cwd: app.cwd,
     hasJsxRuntime: app.hasJsxRuntime,

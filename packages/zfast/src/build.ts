@@ -1,6 +1,6 @@
 import { build } from "@zfast/webpack";
 import { App } from "./app";
-import getCwd from "./utils/getCwd";
+import { getCwd } from "@zfast/utils";
 import fs from "fs-extra";
 import {
   WARN_AFTER_BUNDLE_GZIP_SIZE,
@@ -21,9 +21,9 @@ export default async function (opts: BuildOpts) {
     env: "production",
     command: "build",
   });
-  await app.init();
+  await app.run();
 
-  const { paths, config, logger, hooks, useTypeScript } = app;
+  const { paths, config, logger, hooks, appData: { useTypeScript } } = app;
   try {
     await fs.remove(paths.appBuild);
     const { stats, previousFileSizes, warnings } = await build({

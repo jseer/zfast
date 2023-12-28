@@ -89,16 +89,16 @@ export class App extends AppCore {
     };
   }
 
-  async init() {
-    await super.init();
+  async run() {
+    await super.run();
     await this.writeTmpFiles();
   }
 
-  getTmpOutputPath(p: string, x: string = "") {
-    return path.join(
-      this.paths.appTemp,
-      `${p}${this.useTypeScript ? ".ts" : ".js"}${x}`
-    );
+  getTmpOutputPath(p: string, hasExt?: boolean, x: string = "") {
+    return path.join(this.paths.appTemp, hasExt ? p : this.getJsExt(p, x));
+  }
+  getJsExt(p: string, x: string = "") {
+    return `${p}${this.appData.useTypeScript ? ".ts" : ".js"}${x}`;
   }
   getTplInputPath(p: string) {
     return path.resolve(__dirname, "tpl", p);
@@ -174,76 +174,110 @@ export class App extends AppCore {
   }
 
   async transformContent(content: string) {
-    return this.useTypeScript
+    return this.appData.useTypeScript
       ? content
       : ((await babelTsToJs(content))?.code as string);
   }
   async writeTmpFiles() {
-    await Promise.all([
-      (async () => {
-        await writeTplFile({
-          outputPath: this.getTmpOutputPath("core/exports"),
-          tplPath: this.getTplInputPath("exports.tpl"),
-          transform: this.transformContent.bind(this),
-          context: {
-            appExports: mapExports(await this.hooks.appExports.call()).join(
-              "\n"
-            ),
-          },
-        });
-      })(),
-      (async () => {
-        const appRuntimePluginPath = fs.existsSync(
-          this.paths.appRuntimePluginPath
-        )
-          ? this.paths.appRuntimePluginPath
-          : "";
-        const [
-          runtimePluginPaths,
-          entryImports,
-          entryHeaderCodes,
-          entryFooterCodes,
-        ] = await Promise.all([
-          this.hooks.runtimePluginPaths.call(),
-          this.hooks.entryImports.call(),
-          this.hooks.entryHeaderCodes.call(),
-          this.hooks.entryFooterCodes.call(),
-        ]);
-        if (appRuntimePluginPath) {
-          runtimePluginPaths.push(appRuntimePluginPath);
-        }
-        await writeTplFile({
-          outputPath: this.getTmpOutputPath("zfast"),
-          tplPath: this.getTplInputPath("zfast.tpl"),
-          transform: this.transformContent.bind(this),
-          context: {
-            renderPath: path.join(path.dirname(__filename), "client/render"),
-            pluginPath: path.join(path.dirname(__filename), "client/plugin"),
-            basename: this.config.basename || "/",
-            historyType: this.config.history?.type || "browser",
-            runtimePlugins: runtimePluginPaths.map((path, index) => ({
-              index,
-              path,
-            })),
-            entryImports: mapImports(entryImports).join("\n"),
-            entryFooterCodes: mapCodes(entryFooterCodes).join("\n"),
-            entryHeaderCodes: mapCodes(entryHeaderCodes).join("\n"),
-          },
-        });
-      })(),
-      (async () => {
-        const { routes, routeComponents, imports } = await this.getFileRoutes();
-        await writeTplFile({
-          outputPath: this.getTmpOutputPath("core/routes"),
-          tplPath: this.getTplInputPath("routes.tpl"),
-          transform: this.transformContent.bind(this),
-          context: {
-            routes,
-            routeComponents,
-            imports,
-          },
-        });
-      })(),
-    ]);
+    await Promise.all(
+      [
+        (async () => {
+          await writeTplFile({
+            outputPath: this.getTmpOutputPath("core/exports"),
+            tplPath: this.getTplInputPath("exports.tpl"),
+            transform: this.transformContent.bind(this),
+            context: {
+              appExports: mapExports(await this.hooks.appExports.call()).join(
+                "\n"
+              ),
+            },
+          });
+        })(),
+        (async () => {
+          const appRuntimePluginPath = fs.existsSync(
+            this.paths.appRuntimePluginPath
+          )
+            ? this.paths.appRuntimePluginPath
+            : "";
+          const [
+            runtimePluginPaths,
+            entryImports,
+            entryHeaderCodes,
+            entryFooterCodes,
+          ] = await Promise.all([
+            this.hooks.runtimePluginPaths.call(),
+            this.hooks.entryImports.call(),
+            this.hooks.entryHeaderCodes.call(),
+            this.hooks.entryFooterCodes.call(),
+          ]);
+          if (appRuntimePluginPath) {
+            runtimePluginPaths.push(appRuntimePluginPath);
+          }
+          await writeTplFile({
+            outputPath: this.getTmpOutputPath("zfast"),
+            tplPath: this.getTplInputPath("zfast.tpl"),
+            transform: this.transformContent.bind(this),
+            context: {
+              renderPath: path.join(path.dirname(__filename), "client/render"),
+              pluginPath: path.join(path.dirname(__filename), "client/plugin"),
+              basename: this.config.basename || "/",
+              historyType: this.config.history?.type || "browser",
+              runtimePlugins: runtimePluginPaths.map((path, index) => ({
+                index,
+                path,
+              })),
+              entryImports: mapImports(entryImports).join("\n"),
+              entryFooterCodes: mapCodes(entryFooterCodes).join("\n"),
+              entryHeaderCodes: mapCodes(entryHeaderCodes).join("\n"),
+            },
+          });
+        })(),
+        (async () => {
+          const { routes, routeComponents, imports } =
+            await this.getFileRoutes();
+          await writeTplFile({
+            outputPath: this.getTmpOutputPath("core/routes"),
+            tplPath: this.getTplInputPath("routes.tpl"),
+            transform: this.transformContent.bind(this),
+            context: {
+              routes,
+              routeComponents,
+              imports,
+            },
+          });
+        })(),
+        this.appData.useTypeScript &&
+          (async () => {
+            const paths: Record<string, any> = {};
+            if (this.appData.hasSrc) {
+              paths["@/*"] = ["src/*"];
+              paths["@@/*"] = [`src/.${this.name}/*`];
+            }
+            const tsConfig = {
+              compilerOptions: {
+                target: "esnext",
+                module: "esnext",
+                lib: ["dom", "dom.iterable", "esnext"],
+                allowJs: true,
+                skipLibCheck: true,
+                moduleResolution: "node",
+                noEmit: true,
+                jsx: "react-jsx",
+                esModuleInterop: true,
+                sourceMap: true,
+                baseUrl: this.paths.appRoot,
+                strict: true,
+                resolveJsonModule: true,
+                paths,
+              },
+              exclude: ["**/node_modules"],
+            };
+            await writeTplFile({
+              outputPath: this.getTmpOutputPath("tsconfig.json", true),
+              content: JSON.stringify(tsConfig, null, 2),
+            });
+          })(),
+      ].filter(Boolean)
+    );
   }
 }
