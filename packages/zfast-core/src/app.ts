@@ -1,4 +1,9 @@
-import { loadConfigFromFile, loadEnv, createLogger } from "@zfast/utils";
+import {
+  loadConfigFromFile,
+  loadEnv,
+  createLogger,
+  getCwd,
+} from "@zfast/utils";
 import fs from "fs";
 import path from "path";
 import { AsyncSeriesWaterfallHook, Hook } from "kooh";
@@ -7,8 +12,8 @@ import { merge } from "lodash";
 
 export interface AppOpts {
   name: string;
-  cwd: string;
-  env: string;
+  cwd?: string;
+  env?: string;
   command: string;
   defaultConfigFiles?: string[];
   configFile?: string;
@@ -58,7 +63,7 @@ export class App {
   appData: IAppData;
   constructor(opts: AppOpts) {
     this.name = opts.name;
-    this.cwd = opts.cwd;
+    this.cwd = getCwd(opts.cwd);
     this.env = opts.env;
     if (this.env) {
       process.env.NODE_ENV = this.env;
@@ -134,6 +139,7 @@ export class App {
       this.defaultConfig,
       await this.hooks.config.call(this.userConfig)
     );
+    return this;
   }
 
   async initPlugins(plugins: IPlugin<any>[]) {

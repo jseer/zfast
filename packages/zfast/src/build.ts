@@ -14,23 +14,36 @@ const printFileSizesAfterBuild = FileSizeReporter.printFileSizesAfterBuild;
 
 export interface BuildOpts extends BaseOpts {}
 export default async function (opts: BuildOpts) {
-  const cwd = getCwd(opts.root);
-  const app = new App({
-    cwd,
+  const app = await new App({
+    cwd: opts.root,
     configFile: opts.configFile,
     env: "production",
     command: "build",
-  });
-  await app.run();
+  }).run();
 
-  const { paths, config, logger, hooks, appData: { useTypeScript } } = app;
+  const {
+    paths,
+    config,
+    logger,
+    hooks,
+    appData: { useTypeScript },
+    cwd,
+    hasJsxRuntime,
+  } = app;
   try {
     await fs.remove(paths.appBuild);
     const { stats, previousFileSizes, warnings } = await build({
-      cwd: app.cwd,
-      hasJsxRuntime: app.hasJsxRuntime,
-      entry: app.getEntry(),
-      paths: app.paths,
+      cwd,
+      hasJsxRuntime,
+      entry: await app.getEntry(),
+      paths: {
+        appBuild: paths.appBuild,
+        appSrc: paths.appSrc,
+        appTsConfig: paths.appTsConfig,
+        appPublic: paths.appPublic,
+        appJsConfig: paths.appJsConfig,
+        appRoot: paths.appRoot,
+      },
       pkg: app.pkg,
       logger,
       publicPath: config.publicPath,

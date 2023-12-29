@@ -10,20 +10,35 @@ const isInteractive = process.stdout.isTTY;
 export interface DevOpts extends BaseOpts {}
 
 export default async function (opts: DevOpts) {
-  const cwd = getCwd(opts.root);
-  const app = new App({
-    cwd,
+  const app = await new App({
+    cwd: opts.root,
     configFile: opts.configFile,
     env: "development",
     command: "dev",
-  });
-  await app.run();
-  const { logger, config, paths, hooks, appData: { useTypeScript } } = app;
-  const { devServer, urls } = await dev({
-    cwd: app.cwd,
-    hasJsxRuntime: app.hasJsxRuntime,
-    entry: app.getEntry(),
+  }).run();
+  const {
+    logger,
+    config,
     paths,
+    hooks,
+    appData: { useTypeScript },
+    cwd,
+    hasJsxRuntime,
+  } = app;
+  const { devServer, urls } = await dev({
+    cwd,
+    hasJsxRuntime,
+    entry: await app.getEntry(),
+    paths: {
+      appBuild: paths.appBuild,
+      appSrc: paths.appSrc,
+      appTsConfig: paths.appTsConfig,
+      appRoot: paths.appRoot,
+      appPublic: paths.appPublic,
+      appPackageJson: paths.appPackageJson,
+      yarnLockFile: paths.yarnLockFile,
+      appJsConfig: paths.appJsConfig,
+    },
     pkg: app.pkg,
     logger: app.logger,
     publicPath: config.publicPath,

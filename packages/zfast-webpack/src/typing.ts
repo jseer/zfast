@@ -8,7 +8,6 @@ export interface BaseOpts {
   cwd: string;
   entry: Record<string, string | string[]>;
   hasJsxRuntime?: boolean;
-  paths: App["paths"];
   pkg: App["pkg"];
   logger: App["logger"];
   publicPath?: string;
@@ -22,16 +21,42 @@ export interface BaseOpts {
 
 export interface BuildOpts extends BaseOpts {
   watch?: boolean;
+  paths: {
+    appBuild: string;
+    appSrc: string;
+    appTsConfig: string;
+    appPublic: string;
+    appJsConfig: string;
+    appRoot: string;
+  };
 }
 
 export interface DevOpts extends BaseOpts {
   fastRefresh?: boolean;
+  paths: {
+    appBuild: string;
+    appSrc: string;
+    appTsConfig: string;
+    appRoot: string;
+    appPublic: string;
+    appPackageJson: string;
+    yarnLockFile: string;
+    appJsConfig: string;
+  };
 }
 
-export type ConfigOpts = Omit<BuildOpts, "watch"> &
-  DevOpts & {
-    env: Env;
-    publicPath: string;
+export type ConfigOpts = BaseOpts & {
+  fastRefresh?: DevOpts["fastRefresh"];
+  paths: {
+    appBuild: string;
+    appSrc: string;
+    appTsConfig: string;
+    appPublic: string;
+    appJsConfig: string;
+    appRoot: string;
   };
+  env: Env;
+  publicPath: string;
+};
 
 export { webpack };

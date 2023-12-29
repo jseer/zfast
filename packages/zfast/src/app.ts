@@ -39,6 +39,7 @@ export class App extends AppCore {
     entryHeaderCodes: AsyncParallelConcatHook<[], ICodeItem>;
     appExports: AsyncParallelConcatHook<[], IAppExports>;
     convertFileToRoutesOpts: AsyncSeriesWaterfallHook<ConvertFileToRoutesOpts>;
+    webpackEntry: AsyncSeriesWaterfallHook<Record<string, string | string[]>>;
   };
   config!: IConfig;
   constructor(props: Omit<AppCoreOpts, "name">) {
@@ -70,13 +71,14 @@ export class App extends AppCore {
       exportsCodes: new AsyncParallelConcatHook(),
       appExports: new AsyncParallelConcatHook(),
       convertFileToRoutesOpts: new AsyncSeriesWaterfallHook(),
+      webpackEntry: new AsyncSeriesWaterfallHook(),
     };
   }
 
   getEntry() {
-    return {
+    return this.hooks.webpackEntry.call({
       main: this.paths.appEntry,
-    };
+    });
   }
 
   getPaths(root: string) {
@@ -92,6 +94,7 @@ export class App extends AppCore {
   async run() {
     await super.run();
     await this.writeTmpFiles();
+    return this;
   }
 
   getTmpOutputPath(p: string, hasExt?: boolean, x: string = "") {

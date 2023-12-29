@@ -6,6 +6,7 @@ import { Urls } from "react-dev-utils/WebpackDevServerUtils";
 import { App } from "@zfast/core";
 import getHttpsConfig from "./getHttpsConfig";
 import { Logger } from "@zfast/utils";
+import { DevOpts } from "../typing";
 
 const host = process.env.HOST || "0.0.0.0";
 const sockHost = process.env.WDS_SOCKET_HOST;
@@ -20,7 +21,7 @@ export default function (
     publicPath,
     logger,
     fastRefresh,
-  }: { paths: App["paths"]; publicPath: string; logger: Logger; fastRefresh?: boolean }
+  }: { paths: DevOpts["paths"]; publicPath: string; logger: Logger; fastRefresh?: boolean }
 ) : WebpackDevServer.Configuration {
   const disableFirewall =
     !proxy || process.env.DANGEROUSLY_DISABLE_HOST_CHECK === "true";

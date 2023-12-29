@@ -1,8 +1,8 @@
 import fs from "fs";
 import crypto from "crypto";
 import path from "path";
-import { App } from "@zfast/core";
 import { Logger } from "@zfast/utils";
+import { DevOpts } from "../typing";
 
 function validateKeyAndCerts(
   {
@@ -54,7 +54,7 @@ function readEnvFile(file: string, type: string, logger: Logger) {
   return fs.readFileSync(file);
 }
 
-function getHttpsConfig(logger: Logger, paths: App["paths"]) {
+function getHttpsConfig(logger: Logger, paths: DevOpts["paths"]) {
   const { SSL_CRT_FILE, SSL_KEY_FILE, HTTPS } = process.env;
   const isHttps = HTTPS === "true";
 
