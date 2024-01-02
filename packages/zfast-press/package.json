@@ -1,6 +1,6 @@
 {
   "name": "@zfast/press",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "scripts": {
     "dev": "father dev",
@@ -22,6 +22,9 @@
     "markdown-it-anchor": "^8.6.7",
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "@zfast/core": "workspace:^",
